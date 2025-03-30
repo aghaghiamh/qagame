@@ -4,3 +4,5 @@ CREATE TABLE users (
     phone_number VARCHAR(256) UNIQUE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users ADD COLUMN hashed_password VARCHAR(256) AFTER phone_number;

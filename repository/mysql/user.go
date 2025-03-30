@@ -8,10 +8,11 @@ import (
 )
 
 type User struct {
-	ID          uint
-	Name        string
-	PhoneNumber string
-	CreatedAt   []uint8
+	ID             uint
+	Name           string
+	PhoneNumber    string
+	HashedPassword sql.NullString
+	CreatedAt      []uint8
 }
 
 func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
@@ -20,7 +21,7 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 	query := `SELECT * FROM users WHERE phone_number = ?`
 	row := mysql.db.QueryRow(query, phoneNumber)
 
-	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.CreatedAt)
+	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
 	if sErr != nil {
 		if sErr == sql.ErrNoRows {
 			return false, nil
@@ -33,8 +34,19 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 }
 
 func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
-	query := `INSERT INTO users(name, phone_number) VALUES (?, ?) `
-	res, err := mysql.db.Exec(query, user.Name, user.PhoneNumber)
+	var query string
+	var res sql.Result
+	var err error
+
+	// if password is not provided, it should be saved as null in db
+	if len(user.HashedPassword) > 0 {
+		query = `INSERT INTO users(name, phone_number, hashed_password) VALUES (?, ?, ?)`
+		res, err = mysql.db.Exec(query, user.Name, user.PhoneNumber, user.HashedPassword)
+	} else {
+		query = `INSERT INTO users(name, phone_number) VALUES (?, ?)`
+		res, err = mysql.db.Exec(query, user.Name, user.PhoneNumber)
+	}
+
 	if err != nil {
 		return entity.User{}, fmt.Errorf("database error for %s query: %w", query, err)
 	}

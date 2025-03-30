@@ -5,6 +5,8 @@ import (
 	"regexp"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
+	utils "github.com/aghaghiamh/gocast/QAGame/pkg"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepo interface {
@@ -25,6 +27,7 @@ func New(repo UserRepo) *UserService {
 type RegisterRequest struct {
 	Name        string
 	PhoneNumber string
+	Password    string
 }
 
 type RegisterResponse struct {
@@ -49,9 +52,24 @@ func (s *UserService) Register(req RegisterRequest) (RegisterResponse, error) {
 		return RegisterResponse{}, fmt.Errorf("user's name must contains at least 3 character")
 	}
 
+	// password validation
+	var hashedPassword string
+	if len(req.Password) == 0 {
+		// TODO: OTP path of Registeration
+	} else if len(req.Password) < 8 {
+		return RegisterResponse{}, fmt.Errorf("user's password must contains at least 8 character")
+	} else {
+		var passErr error
+		hashedPassword, passErr = hashPassword(req.Password)
+		if passErr != nil {
+			return RegisterResponse{}, passErr
+		}
+	}
+
 	user := entity.User{
-		PhoneNumber: req.PhoneNumber,
-		Name:        req.Name,
+		PhoneNumber:    req.PhoneNumber,
+		Name:           req.Name,
+		HashedPassword: hashedPassword,
 	}
 	var regErr error
 	user, regErr = s.repo.Register(user)
@@ -74,4 +92,15 @@ func isValidPhoneNumber(phoneNumber string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func hashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", &utils.RichErr{
+			Kind:    utils.ServerError,
+			Message: fmt.Sprintf("Couldn't hash the password: %s", password),
+		}
+	}
+	return string(hashedPassword), nil
 }
