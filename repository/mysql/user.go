@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
+	utils "github.com/aghaghiamh/gocast/QAGame/pkg"
 )
 
 type User struct {
@@ -53,6 +54,37 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 
 	lastID, _ := res.LastInsertId()
 	user.ID = uint(lastID)
+
+	return user, nil
+}
+
+func (mysql MysqlDB) GetUser(phoneNumber string) (entity.User, error) {
+	var fetchedUser User
+
+	query := `SELECT * FROM users WHERE phone_number = ?`
+	row := mysql.db.QueryRow(query, phoneNumber)
+
+	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
+	if sErr != nil {
+		if sErr == sql.ErrNoRows {
+			return entity.User{}, &utils.RichErr{
+				Code:    utils.EntityNotFound,
+				Message: fmt.Sprintf("An account with %s phone number is not exist, please register first.", phoneNumber),
+			}
+		}
+
+		return entity.User{}, &utils.RichErr{
+			Code:    utils.GeneralDatabaseErr,
+			Message: sErr.Error(),
+		}
+	}
+
+	user := entity.User{
+		ID: fetchedUser.ID,
+		Name: fetchedUser.Name,
+		PhoneNumber: fetchedUser.PhoneNumber,
+		HashedPassword: fetchedUser.HashedPassword.String,
+	}
 
 	return user, nil
 }
