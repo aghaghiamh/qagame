@@ -27,6 +27,15 @@ func New(repo UserRepo) *UserService {
 	}
 }
 
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID uint `json:"user_id"`
+}
+
+func (c *Claims) Valid() {
+	return
+}
+
 type RegisterRequest struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
@@ -45,6 +54,14 @@ type LoginRequest struct {
 type LoginResponse struct {
 	UserID int
 	Token  string
+}
+
+type AuthRequest struct {
+	Token string
+}
+
+type AuthResponse struct {
+	IsAuthenticated bool
 }
 
 func (s *UserService) Login(req LoginRequest) (LoginResponse, error) {
@@ -80,13 +97,13 @@ func (s *UserService) Login(req LoginRequest) (LoginResponse, error) {
 			}
 		}
 
-		token, tErr := createToken(req.PhoneNumber, "secret-key")
+		token, tErr := createToken(user.ID, "secret-key")
 		if tErr != nil {
 			return LoginResponse{}, tErr
 		}
 		loginResponse = LoginResponse{
 			UserID: int(user.ID),
-			Token: token,
+			Token:  token,
 		}
 	}
 	return loginResponse, nil
@@ -138,22 +155,45 @@ func (s *UserService) Register(req RegisterRequest) (RegisterResponse, error) {
 	return RegisterResponse{User: user}, nil
 }
 
-func createToken(phoneNumber string, secretKey string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
-        jwt.MapClaims{ 
-        "phone_number": phoneNumber, 
-        "exp": time.Now().Add(time.Minute * 20).Unix(), 
-        })
-
-    tokenString, err := token.SignedString([]byte(secretKey))
-    if err != nil {
-    return "", utils.RichErr{
-		Code: utils.GeneralServerErr,
-		Message: fmt.Sprintf("Couldn't sign JWT token: %s", err),
+func (s *UserService) Authorize(req AuthRequest) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(req.Token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-    }
+		return []byte("secret-key"), nil
+	})
 
- return tokenString, nil
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, utils.RichErr{
+		Code: utils.TokenInvalidErr,
+	}
+}
+
+func createToken(userID uint, secretKey string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		&Claims{
+			UserID: userID,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: &jwt.NumericDate{time.Now().Add(time.Minute * 20)},
+			},
+		})
+
+	tokenString, err := token.SignedString([]byte(secretKey))
+	if err != nil {
+		return "", utils.RichErr{
+			Code:    utils.GeneralServerErr,
+			Message: fmt.Sprintf("Couldn't sign JWT token: %s", err),
+		}
+	}
+
+	return tokenString, nil
 }
 
 // Validate phone number using (+98) 09xxxxxxxxx pattern which x is a digit

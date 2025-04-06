@@ -80,9 +80,9 @@ func (mysql MysqlDB) GetUser(phoneNumber string) (entity.User, error) {
 	}
 
 	user := entity.User{
-		ID: fetchedUser.ID,
-		Name: fetchedUser.Name,
-		PhoneNumber: fetchedUser.PhoneNumber,
+		ID:             fetchedUser.ID,
+		Name:           fetchedUser.Name,
+		PhoneNumber:    fetchedUser.PhoneNumber,
 		HashedPassword: fetchedUser.HashedPassword.String,
 	}
 

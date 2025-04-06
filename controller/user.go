@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
@@ -57,7 +58,7 @@ func UserRegisterHandler(wr http.ResponseWriter, req *http.Request) {
 
 func UserLoginHandler(wr http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
-		fmt.Fprint(wr, "Bad Request: only post request accepted for registration")
+		fmt.Fprint(wr, "Bad Request: only post request accepted for login")
 		return
 	}
 
@@ -88,12 +89,48 @@ func UserLoginHandler(wr http.ResponseWriter, req *http.Request) {
 
 	repo, _ := mysql.New(dbConf)
 	service := userservice.New(repo)
-	_, err := service.Login(loginReq)
+	loginResp, err := service.Login(loginReq)
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 
 	// return response
-	fmt.Fprint(wr, "successful login")
+	fmt.Fprintf(wr, "successful login, token: %s", loginResp.Token)
+}
+
+func UserAuthHandler(wr http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		fmt.Fprint(wr, "Bad Request: only get request accepted for Authorization")
+		return
+	}
+
+	// unmarshal request
+	authHeader := req.Header.Get("Authorization")
+	if authHeader == "" {
+		fmt.Print("Authorization header required", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if the header has the right format
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		fmt.Print("Authorization header must be in the format: Bearer {token}", http.StatusUnauthorized)
+		return
+	}
+
+	// Create auth request with the token
+	authReq := userservice.AuthRequest{
+		Token: parts[1],
+	}
+
+	service := userservice.New(nil)
+	_, err := service.Authorize(authReq)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// return response
+	fmt.Fprint(wr, "successful auth")
 }

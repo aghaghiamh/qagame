@@ -16,6 +16,7 @@ const (
 
 	// Auth Errors (4000-4999)
 	InvalidCredentialsErr = 4002
+	TokenInvalidErr       = 4006
 
 	// Business Logic Errors (5000-5999)
 	GeneralBusinessLogicError = 5000
@@ -36,6 +37,8 @@ func (err RichErr) Error() string {
 		return fmt.Sprintf("Not Found: %s", err.Message)
 	case InvalidCredentialsErr:
 		return fmt.Sprintf("Invalid phone number or password")
+	case TokenInvalidErr:
+		return fmt.Sprintf("Malformed or Invalid JWT token")
 	case GeneralBusinessLogicError:
 		return fmt.Sprintf("General Bussiness Logic Error: %s", err.Message)
 	default:
