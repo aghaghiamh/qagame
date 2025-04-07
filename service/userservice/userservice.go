@@ -3,11 +3,9 @@ package userservice
 import (
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
 	utils "github.com/aghaghiamh/gocast/QAGame/pkg"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,23 +15,21 @@ type UserRepo interface {
 	GetUser(phoneNumber string) (entity.User, error)
 }
 
-type UserService struct {
+type AuthGenerator interface {
+	CreateAccessToken(userID uint) (string, error)
+	CreateRefreshToken(userID uint) (string, error)
+}
+
+type Service struct {
+	auth AuthGenerator
 	repo UserRepo
 }
 
-func New(repo UserRepo) *UserService {
-	return &UserService{
+func New(repo UserRepo, auth AuthGenerator) Service {
+	return Service{
+		auth: auth,
 		repo: repo,
 	}
-}
-
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID uint `json:"user_id"`
-}
-
-func (c *Claims) Valid() {
-	return
 }
 
 type RegisterRequest struct {
@@ -52,19 +48,21 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	UserID int
-	Token  string
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type AuthRequest struct {
-	Token string
+	UserID       uint
+	AccessToken  string
+	RefreshToken string
 }
 
 type AuthResponse struct {
-	IsAuthenticated bool
+	AccessToken string
 }
 
-func (s *UserService) Login(req LoginRequest) (LoginResponse, error) {
+func (s *Service) Login(req LoginRequest) (LoginResponse, error) {
 	if valid, err := isValidPhoneNumber(req.PhoneNumber); !valid || err != nil {
 		return LoginResponse{}, err
 	}
@@ -97,19 +95,25 @@ func (s *UserService) Login(req LoginRequest) (LoginResponse, error) {
 			}
 		}
 
-		token, tErr := createToken(user.ID, "secret-key")
-		if tErr != nil {
-			return LoginResponse{}, tErr
+		accessToken, aErr := s.auth.CreateAccessToken(user.ID)
+		if aErr != nil {
+			return LoginResponse{}, aErr
 		}
+
+		refreshToken, rErr := s.auth.CreateRefreshToken(user.ID)
+		if rErr != nil {
+			return LoginResponse{}, rErr
+		}
+
 		loginResponse = LoginResponse{
-			UserID: int(user.ID),
-			Token:  token,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		}
 	}
 	return loginResponse, nil
 }
 
-func (s *UserService) Register(req RegisterRequest) (RegisterResponse, error) {
+func (s *Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	if valid, err := isValidPhoneNumber(req.PhoneNumber); !valid || err != nil {
 		return RegisterResponse{}, err
 	}
@@ -153,47 +157,6 @@ func (s *UserService) Register(req RegisterRequest) (RegisterResponse, error) {
 	}
 
 	return RegisterResponse{User: user}, nil
-}
-
-func (s *UserService) Authorize(req AuthRequest) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(req.Token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte("secret-key"), nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
-	}
-
-	return nil, utils.RichErr{
-		Code: utils.TokenInvalidErr,
-	}
-}
-
-func createToken(userID uint, secretKey string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		&Claims{
-			UserID: userID,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: &jwt.NumericDate{time.Now().Add(time.Minute * 20)},
-			},
-		})
-
-	tokenString, err := token.SignedString([]byte(secretKey))
-	if err != nil {
-		return "", utils.RichErr{
-			Code:    utils.GeneralServerErr,
-			Message: fmt.Sprintf("Couldn't sign JWT token: %s", err),
-		}
-	}
-
-	return tokenString, nil
 }
 
 // Validate phone number using (+98) 09xxxxxxxxx pattern which x is a digit
