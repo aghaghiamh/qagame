@@ -10,11 +10,7 @@ import (
 )
 
 type Service struct {
-	signKey              []byte
-	accessSubject        string
-	refreshSubject       string
-	accessTokenDuration  time.Duration
-	refreshTokenDuration time.Duration
+	config AuthConfig
 }
 
 type AuthConfig struct {
@@ -27,11 +23,7 @@ type AuthConfig struct {
 
 func New(authConf AuthConfig) Service {
 	return Service{
-		signKey:              []byte(authConf.SignKey),
-		accessSubject:        authConf.AccessSubject,
-		refreshSubject:       authConf.RefreshSubject,
-		accessTokenDuration:  authConf.AccessTokenDuration,
-		refreshTokenDuration: authConf.RefreshTokenDuration,
+		config: authConf,
 	}
 }
 
@@ -46,11 +38,11 @@ func (c *Claims) Valid() {
 }
 
 func (s *Service) CreateAccessToken(userID uint) (string, error) {
-	return createToken(userID, s.accessSubject, s.signKey, s.accessTokenDuration)
+	return createToken(userID, s.config.AccessSubject, []byte(s.config.SignKey), s.config.AccessTokenDuration)
 }
 
 func (s *Service) CreateRefreshToken(userID uint) (string, error) {
-	return createToken(userID, s.refreshSubject, s.signKey, s.refreshTokenDuration)
+	return createToken(userID, s.config.RefreshSubject, []byte(s.config.SignKey), s.config.RefreshTokenDuration)
 }
 
 func createToken(userID uint, subject string, signKey []byte, ttl time.Duration) (string, error) {
@@ -85,7 +77,7 @@ func (s *Service) VerifyToken(bearerToken string) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return s.signKey, nil
+		return []byte(s.config.SignKey), nil
 	})
 
 	if err != nil {

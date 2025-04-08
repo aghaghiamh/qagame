@@ -1,18 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/aghaghiamh/gocast/QAGame/handler/userhandler"
+	"github.com/aghaghiamh/gocast/QAGame/delivery/userserver"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/userservice"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
+
+	e := echo.New()
+
 	// user service registration
 	dbConf := mysql.MysqlConfig{
 		Host:     "127.0.0.1",
@@ -37,13 +39,12 @@ func main() {
 	}
 	authSvc := authservice.New(authConf)
 	userSvc := userservice.New(repo, &authSvc)
-	handler := userhandler.New(userSvc)
+	handler := userserver.New(userSvc)
 
-	http.HandleFunc("/user/register", handler.UserRegisterHandler)
-	http.HandleFunc("/user/login", handler.UserLoginHandler)
+	e.POST("/user/register", handler.UserRegisterHandler)
+	e.POST("/user/login", handler.UserLoginHandler)
 
-	fmt.Print("Server is running on port 8080...")
-	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+	if err := e.Start("localhost:8080"); err != nil {
 		log.Fatalf("Couldn't Listen to the 8080 port.")
 	}
 }

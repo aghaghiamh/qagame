@@ -38,8 +38,14 @@ type RegisterRequest struct {
 	Password    string `json:"password"`
 }
 
+type UserInfo struct {
+	UserID      uint   `json:"user_id"`
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 type RegisterResponse struct {
-	User entity.User
+	UserInfo
 }
 
 type LoginRequest struct {
@@ -156,7 +162,13 @@ func (s *Service) Register(req RegisterRequest) (RegisterResponse, error) {
 		return RegisterResponse{}, regErr
 	}
 
-	return RegisterResponse{User: user}, nil
+	return RegisterResponse{
+		UserInfo{
+			UserID:      user.ID,
+			Name:        user.Name,
+			PhoneNumber: user.PhoneNumber,
+		},
+	}, nil
 }
 
 // Validate phone number using (+98) 09xxxxxxxxx pattern which x is a digit
