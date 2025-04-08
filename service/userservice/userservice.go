@@ -12,7 +12,8 @@ import (
 type UserRepo interface {
 	IsAlreadyExist(phoneNumber string) (bool, error)
 	Register(user entity.User) (entity.User, error)
-	GetUser(phoneNumber string) (entity.User, error)
+	GetUserByPhoneNumber(phoneNumber string) (entity.User, error)
+	GetUserByID(user_id uint) (entity.User, error)
 }
 
 type AuthGenerator interface {
@@ -48,24 +49,29 @@ type RegisterResponse struct {
 	UserInfo
 }
 
+// TODO: All Authorization tasks must handle in the authservice and
+// be checked before comming into any other service as a middle-ware.
+type AuthTokens struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type LoginRequest struct {
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
 }
 
 type LoginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	UserInfo
+	AuthTokens
 }
 
-type AuthRequest struct {
-	UserID       uint
-	AccessToken  string
-	RefreshToken string
+type UserProfileRequest struct {
+	UserID uint `json:"user_id"`
 }
 
-type AuthResponse struct {
-	AccessToken string
+type UserProfileResponse struct {
+	UserInfo
 }
 
 func (s *Service) Login(req LoginRequest) (LoginResponse, error) {
@@ -83,7 +89,7 @@ func (s *Service) Login(req LoginRequest) (LoginResponse, error) {
 			Message: "Password should contains at least 8 characters",
 		}
 	} else { // Normal Authentication Path
-		user, err := s.repo.GetUser(req.PhoneNumber)
+		user, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 		if err != nil {
 			return LoginResponse{}, err
 		}
@@ -112,8 +118,15 @@ func (s *Service) Login(req LoginRequest) (LoginResponse, error) {
 		}
 
 		loginResponse = LoginResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+			UserInfo{
+				UserID: user.ID,
+				Name: user.Name,
+				PhoneNumber: user.PhoneNumber,
+			},
+			AuthTokens{
+				AccessToken:  accessToken,
+				RefreshToken: refreshToken,
+			},
 		}
 	}
 	return loginResponse, nil
@@ -200,4 +213,18 @@ func hashPassword(password string) (string, error) {
 		}
 	}
 	return string(hashedPassword), nil
+}
+
+func (s *Service) GetUserProfile(req UserProfileRequest) (UserProfileResponse, error) {
+	user, gErr := s.repo.GetUserByID(req.UserID)
+	if gErr != nil {
+		return UserProfileResponse{}, nil
+	}
+	return UserProfileResponse{
+		UserInfo{
+			UserID:      user.ID,
+			Name:        user.Name,
+			PhoneNumber: user.PhoneNumber,
+		},
+	}, nil
 }

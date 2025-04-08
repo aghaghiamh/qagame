@@ -58,7 +58,7 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 	return user, nil
 }
 
-func (mysql MysqlDB) GetUser(phoneNumber string) (entity.User, error) {
+func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE phone_number = ?`
@@ -70,6 +70,37 @@ func (mysql MysqlDB) GetUser(phoneNumber string) (entity.User, error) {
 			return entity.User{}, &utils.RichErr{
 				Code:    utils.EntityNotFound,
 				Message: fmt.Sprintf("An account with %s phone number is not exist, please register first.", phoneNumber),
+			}
+		}
+
+		return entity.User{}, &utils.RichErr{
+			Code:    utils.GeneralDatabaseErr,
+			Message: sErr.Error(),
+		}
+	}
+
+	user := entity.User{
+		ID:             fetchedUser.ID,
+		Name:           fetchedUser.Name,
+		PhoneNumber:    fetchedUser.PhoneNumber,
+		HashedPassword: fetchedUser.HashedPassword.String,
+	}
+
+	return user, nil
+}
+
+func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
+	var fetchedUser User
+
+	query := `SELECT * FROM users WHERE id = ?`
+	row := mysql.db.QueryRow(query, user_id)
+
+	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
+	if sErr != nil {
+		if sErr == sql.ErrNoRows {
+			return entity.User{}, &utils.RichErr{
+				Code:    utils.EntityNotFound,
+				Message: fmt.Sprintf("An account with %d id is not exist, please register first.", user_id),
 			}
 		}
 
