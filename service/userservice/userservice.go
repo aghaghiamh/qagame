@@ -119,8 +119,8 @@ func (s *Service) Login(req LoginRequest) (LoginResponse, error) {
 
 		loginResponse = LoginResponse{
 			UserInfo{
-				UserID: user.ID,
-				Name: user.Name,
+				UserID:      user.ID,
+				Name:        user.Name,
 				PhoneNumber: user.PhoneNumber,
 			},
 			AuthTokens{

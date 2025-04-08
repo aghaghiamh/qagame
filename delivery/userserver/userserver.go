@@ -56,7 +56,8 @@ func (h UserServer) UserGetProfileHandler(c echo.Context) error {
 	claims, vErr := h.authservice.VerifyToken(bearerToken)
 	if vErr != nil {
 		// TODO: Use Refresh Token
-		if vErr == jwt.ErrTokenExpired {}
+		if vErr == jwt.ErrTokenExpired {
+		}
 		return vErr
 	}
 
@@ -72,7 +73,7 @@ func (h UserServer) UserGetProfileHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, profileResp)
 }
 
-func (server *UserServer) Serve(){
+func (server *UserServer) Serve() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

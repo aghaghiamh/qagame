@@ -1,0 +1,7 @@
+development:
+  dialect: mysql
+  datasource: root:12345@tcp(localhost:3308)/users?parseTime=true
+  dir: migrations
+  table: migrations
+
+# sql-migrate up -limit=1 -env="production" -config=repository/mysql/dbconfig.yml

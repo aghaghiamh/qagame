@@ -1,3 +1,4 @@
+-- +migrate Up
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(256) NOT NULL,
@@ -5,4 +6,5 @@ CREATE TABLE users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE users ADD COLUMN hashed_password VARCHAR(256) AFTER phone_number;
+-- +migrate Down
+DROP TABLE users;
