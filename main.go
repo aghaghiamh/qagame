@@ -24,6 +24,9 @@ func main() {
 
 	repo, _ := mysql.New(dbConf)
 
+	// m := migrator.New("mysql", dbConf)
+	// m.Down()
+
 	authConf := authservice.AuthConfig{
 		SignKey:              "secret-key",
 		AccessSubject:        "at",

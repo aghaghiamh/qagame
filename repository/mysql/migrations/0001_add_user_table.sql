@@ -1,5 +1,5 @@
 -- +migrate Up
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(256) NOT NULL,
     phone_number VARCHAR(256) UNIQUE NOT NULL,
@@ -7,4 +7,4 @@ CREATE TABLE users (
 );
 
 -- +migrate Down
-DROP TABLE users;
+DROP TABLE IF EXISTS users;
