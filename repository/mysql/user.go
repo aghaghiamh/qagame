@@ -32,7 +32,7 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 		return false, richerr.New(op).
 			WithError(sErr).
 			WithCode(richerr.ErrServer).
-			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
+			WithMessage(errmsg.ErrMsgCantScanQueryResult)
 	}
 
 	return true, nil
@@ -59,7 +59,7 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 		return entity.User{}, richerr.New(op).
 			WithError(err).
 			WithCode(richerr.ErrServer).
-			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
+			WithMessage(errmsg.ErrMsgCantScanQueryResult)
 	}
 
 	lastID, _ := res.LastInsertId()
@@ -87,7 +87,7 @@ func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, erro
 
 		return entity.User{}, richErr.
 			WithCode(richerr.ErrServer).
-			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
+			WithMessage(errmsg.ErrMsgCantScanQueryResult)
 	}
 
 	user := entity.User{
@@ -119,7 +119,7 @@ func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
 
 		return entity.User{}, richErr.
 			WithCode(richerr.ErrServer).
-			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
+			WithMessage(errmsg.ErrMsgCantScanQueryResult)
 	}
 
 	user := entity.User{

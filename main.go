@@ -7,6 +7,7 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/userservice"
+	"github.com/aghaghiamh/gocast/QAGame/validator/uservalidator"
 )
 
 func main() {
@@ -24,9 +25,6 @@ func main() {
 
 	repo, _ := mysql.New(dbConf)
 
-	// m := migrator.New("mysql", dbConf)
-	// m.Down()
-
 	authConf := authservice.AuthConfig{
 		SignKey:              "secret-key",
 		AccessSubject:        "at",
@@ -35,8 +33,11 @@ func main() {
 		RefreshTokenDuration: time.Hour * 24 * 7,
 	}
 	authSvc := authservice.New(authConf)
+
+	uservalidator := uservalidator.New(repo)
+
 	userSvc := userservice.New(repo, &authSvc)
-	server := userserver.New(userSvc, authSvc)
+	server := userserver.New(userSvc, authSvc, uservalidator)
 
 	server.Serve()
 }

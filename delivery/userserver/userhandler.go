@@ -3,9 +3,12 @@ package userserver
 import (
 	"net/http"
 
+	"github.com/aghaghiamh/gocast/QAGame/dto"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/errmsg"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/httpmapper"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	userservice "github.com/aghaghiamh/gocast/QAGame/service/userservice"
+	"github.com/aghaghiamh/gocast/QAGame/validator/uservalidator"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -13,20 +16,30 @@ import (
 type UserServer struct {
 	userservice userservice.Service
 	authservice authservice.Service
+	validator   uservalidator.UserValidator
 }
 
-func New(userservice userservice.Service, authservice authservice.Service) UserServer {
+func New(userservice userservice.Service, authservice authservice.Service, validator uservalidator.UserValidator) UserServer {
 	return UserServer{
 		userservice: userservice,
 		authservice: authservice,
+		validator:   validator,
 	}
 }
 
 func (h UserServer) UserRegisterHandler(c echo.Context) error {
-	var regReq userservice.RegisterRequest
+	var regReq dto.RegisterRequest
 	if err := c.Bind(&regReq); err != nil {
 
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	fieldErrs, vErr := h.validator.ValidateRegisterRequest(regReq)
+	if vErr != nil {
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+			"message": errmsg.ErrMsgInvalidInput,
+			"errors":  fieldErrs,
+		})
 	}
 
 	resp, regErr := h.userservice.Register(regReq)
@@ -40,7 +53,7 @@ func (h UserServer) UserRegisterHandler(c echo.Context) error {
 }
 
 func (h UserServer) UserLoginHandler(c echo.Context) error {
-	var loginReq userservice.LoginRequest
+	var loginReq dto.LoginRequest
 	if err := c.Bind(&loginReq); err != nil {
 
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -68,14 +81,14 @@ func (h UserServer) UserGetProfileHandler(c echo.Context) error {
 		return echo.NewHTTPError(code, msg)
 	}
 
-	profileReq := userservice.UserProfileRequest{
+	profileReq := dto.UserProfileRequest{
 		UserID: claims.UserID,
 	}
 
 	profileResp, respErr := h.userservice.GetProfile(profileReq)
 	if respErr != nil {
 		code, msg := httpmapper.MapResponseCustomErrorToHttp(respErr)
-		
+
 		return echo.NewHTTPError(code, msg)
 	}
 
