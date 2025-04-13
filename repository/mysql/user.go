@@ -2,10 +2,10 @@ package mysql
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
-	utils "github.com/aghaghiamh/gocast/QAGame/pkg"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/errmsg"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
 )
 
 type User struct {
@@ -17,6 +17,7 @@ type User struct {
 }
 
 func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
+	const op = "mysql.IsAlreadyExist"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE phone_number = ?`
@@ -28,13 +29,18 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 			return false, nil
 		}
 
-		return false, fmt.Errorf("database error: %w", sErr)
+		return false, richerr.New(op).
+			WithError(sErr).
+			WithCode(richerr.ErrServer).
+			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
 	}
 
 	return true, nil
 }
 
 func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
+	const op = "mysql.Register"
+
 	var query string
 	var res sql.Result
 	var err error
@@ -49,7 +55,11 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 	}
 
 	if err != nil {
-		return entity.User{}, fmt.Errorf("database error for %s query: %w", query, err)
+
+		return entity.User{}, richerr.New(op).
+			WithError(err).
+			WithCode(richerr.ErrServer).
+			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
 	}
 
 	lastID, _ := res.LastInsertId()
@@ -59,6 +69,7 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 }
 
 func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
+	const op = "mysql.GetUserByPhoneNumber"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE phone_number = ?`
@@ -66,17 +77,17 @@ func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, erro
 
 	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
 	if sErr != nil {
+		richErr := richerr.New(op).WithError(sErr)
+
 		if sErr == sql.ErrNoRows {
-			return entity.User{}, &utils.RichErr{
-				Code:    utils.EntityNotFound,
-				Message: fmt.Sprintf("An account with %s phone number is not exist, please register first.", phoneNumber),
-			}
+			return entity.User{}, richErr.
+				WithCode(richerr.ErrEntityNotFound).
+				WithMessage(errmsg.ErrMsgNotFound)
 		}
 
-		return entity.User{}, &utils.RichErr{
-			Code:    utils.GeneralDatabaseErr,
-			Message: sErr.Error(),
-		}
+		return entity.User{}, richErr.
+			WithCode(richerr.ErrServer).
+			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
 	}
 
 	user := entity.User{
@@ -90,6 +101,7 @@ func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, erro
 }
 
 func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
+	const op = "mysql.GetUserByID"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE id = ?`
@@ -97,17 +109,17 @@ func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
 
 	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
 	if sErr != nil {
+		richErr := richerr.New(op).WithError(sErr)
+
 		if sErr == sql.ErrNoRows {
-			return entity.User{}, &utils.RichErr{
-				Code:    utils.EntityNotFound,
-				Message: fmt.Sprintf("An account with %d id is not exist, please register first.", user_id),
-			}
+			return entity.User{}, richErr.
+				WithCode(richerr.ErrEntityNotFound).
+				WithMessage(errmsg.ErrMsgNotFound)
 		}
 
-		return entity.User{}, &utils.RichErr{
-			Code:    utils.GeneralDatabaseErr,
-			Message: sErr.Error(),
-		}
+		return entity.User{}, richErr.
+			WithCode(richerr.ErrServer).
+			WithMessage(errmsg.ErrorMsgCantScanQueryResult)
 	}
 
 	user := entity.User{
