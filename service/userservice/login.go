@@ -11,19 +11,10 @@ import (
 func (s *Service) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	const op = "userservice.Login"
 
-	// if valid, err := isValidPhoneNumber(req.PhoneNumber); !valid || err != nil {
-	// 	return dto.LoginResponse{}, err
-	// }
-
 	var loginResponse dto.LoginResponse
 
 	if len(req.Password) == 0 {
 		// TODO: OTP Login
-	} else if len(req.Password) < 8 {
-
-		return dto.LoginResponse{}, richerr.New(op).
-			WithCode(richerr.ErrInvalidInput).
-			WithMessage("Password should contains at least 8 characters")
 	} else { // Normal Authentication Path
 		user, dbErr := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 		if dbErr != nil {

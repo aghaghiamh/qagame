@@ -9,15 +9,10 @@ import (
 func (s *Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
 	const op = "userservice.Register"
 
-	// password validation
+	// Determine whether it's a normal path of password validation, or an OTP one.
 	var hashedPassword string
 	if len(req.Password) == 0 {
-		// TODO: OTP path of Registeration
-	} else if len(req.Password) < 8 {
-
-		return dto.RegisterResponse{}, richerr.New(op).
-			WithCode(richerr.ErrInvalidInput).
-			WithMessage("user's password must contains at least 8 character")
+		// TODO: OTP path of Registeration, Currently it would recognized as a abnormality in validation logic
 	} else {
 		var passErr error
 		hashedPassword, passErr = hashPassword(req.Password)

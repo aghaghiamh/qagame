@@ -3,7 +3,8 @@ package main
 import (
 	"time"
 
-	"github.com/aghaghiamh/gocast/QAGame/delivery/userserver"
+	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
+	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/userservice"
@@ -37,7 +38,8 @@ func main() {
 	uservalidator := uservalidator.New(repo)
 
 	userSvc := userservice.New(repo, &authSvc)
-	server := userserver.New(userSvc, authSvc, uservalidator)
+	userHandler := userhandler.New(userSvc, authSvc, uservalidator)
 
+	server := httpserver.New(userHandler)
 	server.Serve()
 }
