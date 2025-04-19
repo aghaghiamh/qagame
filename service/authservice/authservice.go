@@ -1,7 +1,7 @@
 package authservice
 
 import (
-	"strings"
+	// "strings"
 	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
@@ -75,16 +75,16 @@ func createToken(userID uint, subject string, signKey []byte, ttl time.Duration)
 func (s *Service) VerifyToken(bearerToken string) (*Claims, error) {
 	const op = "authservice.VerifyToken"
 
-	parts := strings.Split(bearerToken, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
+	// parts := strings.Split(bearerToken, " ")
+	// if len(parts) != 2 || parts[0] != "Bearer" {
 
-		return nil, richerr.New(op).
-			WithCode(richerr.ErrInvalidToken).
-			WithMessage("Authorization header must be in the format: Bearer {token}").
-			WithMetadata(map[string]interface{}{"token": bearerToken})
-	}
+	// 	return nil, richerr.New(op).
+	// 		WithCode(richerr.ErrInvalidToken).
+	// 		WithMessage("Authorization header must be in the format: Bearer {token}").
+	// 		WithMetadata(map[string]interface{}{"token": bearerToken})
+	// }
 
-	token, signErr := jwt.ParseWithClaims(parts[1], &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, signErr := jwt.ParseWithClaims(bearerToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 
 			return nil, richerr.New(op).

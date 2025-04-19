@@ -20,8 +20,8 @@ func (v UserValidator) ValidateLoginRequest(req dto.LoginRequest) (map[string]st
 			validation.Match(regexp.MustCompile(PhoneNumberRegex)).Error("Phone number does not satisfy the valid pattern of `(+98) 09xxxxxxxxx`."),
 			validation.By(v.doesPhoneNumberExist)),
 
-			validation.Field(&req.Password, validation.Required,
-				validation.Match(regexp.MustCompile((`^[A-Za-z0-9!@#%^&*]{8,}$`)))),
+		validation.Field(&req.Password, validation.Required,
+			validation.Match(regexp.MustCompile((`^[A-Za-z0-9!@#%^&*]{8,}$`)))),
 	)
 
 	if err != nil {

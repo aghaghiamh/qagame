@@ -1,24 +1,30 @@
 package userhandler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/constant"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/httpmapper"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
+
 	"github.com/labstack/echo/v4"
 )
 
-func (h UserHandler) GetProfileHandler(c echo.Context) error {
-	bearerToken := c.Request().Header.Get("Authorization")
-	claims, vErr := h.authSvc.VerifyToken(bearerToken)
-	if vErr != nil {
-		// TODO: Use Refresh Token
-		if vErr == jwt.ErrTokenExpired {
-		}
-		code, msg := httpmapper.MapResponseCustomErrorToHttp(vErr)
+func getClaims(c echo.Context) (*authservice.Claims, error) {
+	rawClaims := c.Get(constant.AUthMiddlewareSecretKey)
+	if claims, ok := rawClaims.(*authservice.Claims); ok {
+		return claims, nil
+	} else {
+		return nil, fmt.Errorf("malwared jwt")
+	}
+}
 
-		return echo.NewHTTPError(code, msg)
+func (h UserHandler) GetProfileHandler(c echo.Context) error {
+	claims, err := getClaims(c)
+	if err != nil {
+		echo.NewHTTPError(http.StatusUnauthorized, "Please provide a valid auth token")
 	}
 
 	profileReq := dto.UserProfileRequest{

@@ -38,7 +38,7 @@ func main() {
 	uservalidator := uservalidator.New(repo)
 
 	userSvc := userservice.New(repo, &authSvc)
-	userHandler := userhandler.New(userSvc, authSvc, uservalidator)
+	userHandler := userhandler.New(userSvc, authSvc, uservalidator, authConf)
 
 	server := httpserver.New(userHandler)
 	server.Serve()
