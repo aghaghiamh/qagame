@@ -8,12 +8,19 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+type HttpConfig struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
+}
+
 type Server struct {
+	cfg         HttpConfig
 	userHandler userhandler.UserHandler
 }
 
-func New(userHandler userhandler.UserHandler) Server {
+func New(cfg HttpConfig, userHandler userhandler.UserHandler) Server {
 	return Server{
+		cfg:         cfg,
 		userHandler: userHandler,
 	}
 }
@@ -25,7 +32,7 @@ func (s *Server) Serve() {
 
 	s.userHandler.SetUserRoutes(e)
 
-	if err := e.Start("localhost:8080"); err != nil {
-		log.Fatalf("Couldn't Listen to the 8080 port.")
+	if err := e.Start(s.cfg.Host + ":" + s.cfg.Port); err != nil {
+		log.Fatalf("Couldn't Listen to the %s port.", s.cfg.Port)
 	}
 }

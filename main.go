@@ -1,8 +1,7 @@
 package main
 
 import (
-	"time"
-
+	"github.com/aghaghiamh/gocast/QAGame/config"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
@@ -12,34 +11,16 @@ import (
 )
 
 func main() {
-	dbConf := mysql.MysqlConfig{
-		Host:     "127.0.0.1",
-		Port:     "3308",
-		Username: "root",
-		Password: "12345",
-		DBName:   "users",
+	config := config.LoadConfig()
 
-		MaxLifeTime: time.Minute * 3,
-		MaxOpenConn: 10,
-		MaxIdleConn: 10,
-	}
+	repo, _ := mysql.New(config.DBConfig)
 
-	repo, _ := mysql.New(dbConf)
-
-	authConf := authservice.AuthConfig{
-		SignKey:              "secret-key",
-		AccessSubject:        "at",
-		RefreshSubject:       "rt",
-		AccessTokenDuration:  time.Hour * 24,
-		RefreshTokenDuration: time.Hour * 24 * 7,
-	}
-	authSvc := authservice.New(authConf)
+	authSvc := authservice.New(config.AuthConfig)
 
 	uservalidator := uservalidator.New(repo)
-
 	userSvc := userservice.New(repo, &authSvc)
-	userHandler := userhandler.New(userSvc, authSvc, uservalidator, authConf)
+	userHandler := userhandler.New(userSvc, authSvc, uservalidator, config.AuthConfig)
 
-	server := httpserver.New(userHandler)
+	server := httpserver.New(config.ServerConfig, userHandler)
 	server.Serve()
 }

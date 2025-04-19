@@ -9,21 +9,21 @@ import (
 )
 
 type Service struct {
-	config AuthConfig
+	cfg AuthConfig
 }
 
 type AuthConfig struct {
-	SignKey              string
-	AccessSubject        string
-	RefreshSubject       string
-	AccessTokenDuration  time.Duration
-	RefreshTokenDuration time.Duration
+	SignKey              string        `mapstructure:"sign_key"`
+	AccessSubject        string        `mapstructure:"access_subject"`
+	RefreshSubject       string        `mapstructure:"refresh_subject"`
+	AccessTokenDuration  time.Duration `mapstructure:"access_token_duration"`
+	RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duraiton"`
 }
 
-func New(authConf AuthConfig) Service {
+func New(authCfg AuthConfig) Service {
 
 	return Service{
-		config: authConf,
+		cfg: authCfg,
 	}
 }
 
@@ -40,12 +40,12 @@ func (c *Claims) Valid() {
 
 func (s *Service) CreateAccessToken(userID uint) (string, error) {
 
-	return createToken(userID, s.config.AccessSubject, []byte(s.config.SignKey), s.config.AccessTokenDuration)
+	return createToken(userID, s.cfg.AccessSubject, []byte(s.cfg.SignKey), s.cfg.AccessTokenDuration)
 }
 
 func (s *Service) CreateRefreshToken(userID uint) (string, error) {
 
-	return createToken(userID, s.config.RefreshSubject, []byte(s.config.SignKey), s.config.RefreshTokenDuration)
+	return createToken(userID, s.cfg.RefreshSubject, []byte(s.cfg.SignKey), s.cfg.RefreshTokenDuration)
 }
 
 func createToken(userID uint, subject string, signKey []byte, ttl time.Duration) (string, error) {
@@ -93,7 +93,7 @@ func (s *Service) VerifyToken(bearerToken string) (*Claims, error) {
 				WithMetadata(map[string]interface{}{"sign-method": token.Header["alg"]})
 		}
 
-		return []byte(s.config.SignKey), nil
+		return []byte(s.cfg.SignKey), nil
 	})
 
 	if signErr != nil {

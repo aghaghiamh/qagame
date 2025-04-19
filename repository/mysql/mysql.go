@@ -9,15 +9,15 @@ import (
 )
 
 type MysqlConfig struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	DBName   string `mapstructure:"db_name"`
 
-	MaxLifeTime time.Duration
-	MaxOpenConn int
-	MaxIdleConn int
+	MaxLifeTime time.Duration `mapstructure:"max_life_time"`
+	MaxOpenConn int           `mapstructure:"max_open_conn"`
+	MaxIdleConn int           `mapstructure:"max_idle_conn"`
 }
 
 type MysqlDB struct {

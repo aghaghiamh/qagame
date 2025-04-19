@@ -1,0 +1,19 @@
+type: yml
+
+db_params:
+# better to not include here
+  host: "127.0.0.1"
+  port: 3308
+  db_name: "users"
+
+  max_life_time: "3m"
+  max_open_conn: 10
+  max_idle_conn: 10
+
+auth_params:
+  access_token_duration:  "24h"
+  refresh_token_duration: "7d"
+
+server_params:
+  host: "localhost"
+  port: 8080
