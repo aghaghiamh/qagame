@@ -9,4 +9,5 @@ type User struct {
 	HashedPassword   string
 	BirthDate        time.Time
 	RegistrationDate time.Time
+	Role             Role // for authorization
 }

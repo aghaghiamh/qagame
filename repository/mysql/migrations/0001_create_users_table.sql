@@ -1,0 +1,10 @@
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `phone_number` VARCHAR(256) UNIQUE NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +migrate Down
+DROP TABLE IF EXISTS `users`;

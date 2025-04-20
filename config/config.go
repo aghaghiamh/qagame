@@ -53,8 +53,6 @@ func LoadConfig() Config {
 		panic(fmt.Errorf("fatal error unmarshal config file: %w", err))
 	}
 
-	fmt.Println(viper.AllSettings())
-
 	return config
 }
 
@@ -70,7 +68,6 @@ func setEnvValues() {
 	for _, key := range envKeys {
 		envKey := ENV_PREFIX + strings.ToUpper(strings.ReplaceAll(key, ".", "_"))
 
-		fmt.Println(envKey)
 		if val, exists := os.LookupEnv(envKey); exists {
 			// Set the value in Viper so it appears in AllSettings()
 			viper.Set(key, val)

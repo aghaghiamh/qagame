@@ -14,6 +14,21 @@ type User struct {
 	PhoneNumber    string
 	HashedPassword sql.NullString
 	CreatedAt      []uint8
+	Role           string
+}
+
+func roleConvertor(role string) entity.Role {
+	switch role {
+	case entity.AdminPriviledgedType:
+		return entity.AdminRole
+	default:
+		return entity.UserRole
+	}
+}
+
+func userScanner(row *sql.Row, fetchedUser *User) error {
+	return row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber,
+		&fetchedUser.HashedPassword, &fetchedUser.CreatedAt, &fetchedUser.Role)
 }
 
 func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
@@ -23,7 +38,7 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 	query := `SELECT * FROM users WHERE phone_number = ?`
 	row := mysql.db.QueryRow(query, phoneNumber)
 
-	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
+	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {
 		if sErr == sql.ErrNoRows {
 			return false, nil
@@ -75,7 +90,7 @@ func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, erro
 	query := `SELECT * FROM users WHERE phone_number = ?`
 	row := mysql.db.QueryRow(query, phoneNumber)
 
-	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
+	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {
 		richErr := richerr.New(op).WithError(sErr)
 
@@ -107,7 +122,7 @@ func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
 	query := `SELECT * FROM users WHERE id = ?`
 	row := mysql.db.QueryRow(query, user_id)
 
-	sErr := row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber, &fetchedUser.HashedPassword, &fetchedUser.CreatedAt)
+	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {
 		richErr := richerr.New(op).WithError(sErr)
 
