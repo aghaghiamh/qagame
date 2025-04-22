@@ -4,6 +4,7 @@ import (
 	// "strings"
 	"time"
 
+	"github.com/aghaghiamh/gocast/QAGame/entity"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -28,8 +29,9 @@ func New(authCfg AuthConfig) Service {
 }
 
 type Claims struct {
-	Subject string `json:"subject"`
-	UserID  uint   `json:"user_id"`
+	Subject  string      `json:"subject"`
+	UserID   uint        `json:"user_id"`
+	UserRole entity.Role `json:"user_role"`
 	jwt.RegisteredClaims
 }
 
@@ -38,23 +40,24 @@ func (c *Claims) Valid() {
 	return
 }
 
-func (s *Service) CreateAccessToken(userID uint) (string, error) {
+func (s *Service) CreateAccessToken(userID uint, userRole entity.Role) (string, error) {
 
-	return createToken(userID, s.cfg.AccessSubject, []byte(s.cfg.SignKey), s.cfg.AccessTokenDuration)
+	return createToken(userID, userRole, s.cfg.AccessSubject, []byte(s.cfg.SignKey), s.cfg.AccessTokenDuration)
 }
 
-func (s *Service) CreateRefreshToken(userID uint) (string, error) {
+func (s *Service) CreateRefreshToken(userID uint, userRole entity.Role) (string, error) {
 
-	return createToken(userID, s.cfg.RefreshSubject, []byte(s.cfg.SignKey), s.cfg.RefreshTokenDuration)
+	return createToken(userID, userRole, s.cfg.RefreshSubject, []byte(s.cfg.SignKey), s.cfg.RefreshTokenDuration)
 }
 
-func createToken(userID uint, subject string, signKey []byte, ttl time.Duration) (string, error) {
+func createToken(userID uint, userRole entity.Role, subject string, signKey []byte, ttl time.Duration) (string, error) {
 	const op = "authservice.createToken"
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		&Claims{
-			Subject: subject,
-			UserID:  userID,
+			Subject:  subject,
+			UserID:   userID,
+			UserRole: userRole,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: &jwt.NumericDate{time.Now().Add(ttl)},
 			},

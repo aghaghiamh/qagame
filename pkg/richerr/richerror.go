@@ -3,11 +3,13 @@ package richerr
 const (
 
 	// Client Error-4xx (4000-4999)
-	ErrInvalidInput = 4001
+	ErrUnauthorized = 4001
+	ErrInvalidInput = 4002
 	ErrInvalidToken = 4006
 
 	// Server Errors-5xx (5000-5999)
 	ErrServer          = 5000
+	ErrUnexpected      = 5001
 	ErrEntityNotFound  = 5010
 	ErrEntityDuplicate = 5011
 )

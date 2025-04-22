@@ -39,3 +39,7 @@ func New(conf MysqlConfig) (*MysqlDB, error) {
 		db: db,
 	}, nil
 }
+
+func (mysql *MysqlDB) GetDB() *sql.DB {
+	return mysql.db
+}

@@ -15,8 +15,8 @@ type UserRepo interface {
 }
 
 type AuthGenerator interface {
-	CreateAccessToken(userID uint) (string, error)
-	CreateRefreshToken(userID uint) (string, error)
+	CreateAccessToken(userID uint, userRole entity.Role) (string, error)
+	CreateRefreshToken(userID uint, userRole entity.Role) (string, error)
 }
 
 type Service struct {

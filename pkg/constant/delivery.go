@@ -1,5 +1,5 @@
 package constant
 
 const (
-	AUthMiddlewareSecretKey = "claims"
+	AuthMiddlewareContextKey = "claims"
 )

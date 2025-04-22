@@ -35,6 +35,10 @@ func richErrCodeToHttpStatusCode(code int) int {
 		return http.StatusConflict
 	case richerr.ErrInvalidInput:
 		return http.StatusUnprocessableEntity
+	case richerr.ErrUnexpected:
+		return http.StatusInternalServerError
+	case richerr.ErrUnauthorized:
+		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError
 	}

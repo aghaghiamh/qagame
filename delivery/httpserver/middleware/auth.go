@@ -11,7 +11,7 @@ import (
 
 func Auth(authSvc authservice.Service, authConf authservice.AuthConfig) echo.MiddlewareFunc {
 	return ejwt.WithConfig(ejwt.Config{
-		ContextKey: constant.AUthMiddlewareSecretKey,
+		ContextKey: constant.AuthMiddlewareContextKey,
 		SigningKey: authConf.SignKey,
 		ParseTokenFunc: func(c echo.Context, auth string) (interface{}, error) {
 			claims, vErr := authSvc.VerifyToken(auth)

@@ -1,4 +1,4 @@
-package mysql
+package user
 
 import (
 	"database/sql"
@@ -17,21 +17,12 @@ type User struct {
 	Role           string
 }
 
-func roleConvertor(role string) entity.Role {
-	switch role {
-	case entity.AdminPriviledgedType:
-		return entity.AdminRole
-	default:
-		return entity.UserRole
-	}
-}
-
 func userScanner(row *sql.Row, fetchedUser *User) error {
 	return row.Scan(&fetchedUser.ID, &fetchedUser.Name, &fetchedUser.PhoneNumber,
 		&fetchedUser.HashedPassword, &fetchedUser.CreatedAt, &fetchedUser.Role)
 }
 
-func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
+func (mysql Storage) IsAlreadyExist(phoneNumber string) (bool, error) {
 	const op = "mysql.IsAlreadyExist"
 	var fetchedUser User
 
@@ -53,7 +44,7 @@ func (mysql MysqlDB) IsAlreadyExist(phoneNumber string) (bool, error) {
 	return true, nil
 }
 
-func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
+func (s Storage) Register(user entity.User) (entity.User, error) {
 	const op = "mysql.Register"
 
 	var query string
@@ -63,10 +54,10 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 	// if password is not provided, it should be saved as null in db
 	if len(user.HashedPassword) > 0 {
 		query = `INSERT INTO users(name, phone_number, hashed_password) VALUES (?, ?, ?)`
-		res, err = mysql.db.Exec(query, user.Name, user.PhoneNumber, user.HashedPassword)
+		res, err = s.db.Exec(query, user.Name, user.PhoneNumber, user.HashedPassword)
 	} else {
 		query = `INSERT INTO users(name, phone_number) VALUES (?, ?)`
-		res, err = mysql.db.Exec(query, user.Name, user.PhoneNumber)
+		res, err = s.db.Exec(query, user.Name, user.PhoneNumber)
 	}
 
 	if err != nil {
@@ -83,12 +74,12 @@ func (mysql MysqlDB) Register(user entity.User) (entity.User, error) {
 	return user, nil
 }
 
-func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
+func (s Storage) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
 	const op = "mysql.GetUserByPhoneNumber"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE phone_number = ?`
-	row := mysql.db.QueryRow(query, phoneNumber)
+	row := s.db.QueryRow(query, phoneNumber)
 
 	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {
@@ -110,17 +101,18 @@ func (mysql MysqlDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, erro
 		Name:           fetchedUser.Name,
 		PhoneNumber:    fetchedUser.PhoneNumber,
 		HashedPassword: fetchedUser.HashedPassword.String,
+		Role:           entity.MapToEntityRole(fetchedUser.Role),
 	}
 
 	return user, nil
 }
 
-func (mysql MysqlDB) GetUserByID(user_id uint) (entity.User, error) {
+func (s Storage) GetUserByID(user_id uint) (entity.User, error) {
 	const op = "mysql.GetUserByID"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE id = ?`
-	row := mysql.db.QueryRow(query, user_id)
+	row := s.db.QueryRow(query, user_id)
 
 	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {

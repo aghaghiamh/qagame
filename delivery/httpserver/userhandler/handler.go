@@ -6,16 +6,16 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/validator/uservalidator"
 )
 
-type UserHandler struct {
+type Handler struct {
 	userSvc    userservice.Service
-	authSvc    authservice.Service
 	validator  uservalidator.UserValidator
+	authSvc    authservice.Service
 	authConfig authservice.AuthConfig
 }
 
 func New(userSvc userservice.Service, authSvc authservice.Service,
-	validator uservalidator.UserValidator, authConfig authservice.AuthConfig) UserHandler {
-	return UserHandler{
+	validator uservalidator.UserValidator, authConfig authservice.AuthConfig) Handler {
+	return Handler{
 		userSvc:    userSvc,
 		authSvc:    authSvc,
 		validator:  validator,

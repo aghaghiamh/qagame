@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h UserHandler) RegisterHandler(c echo.Context) error {
+func (h Handler) RegisterHandler(c echo.Context) error {
 	var regReq dto.RegisterRequest
 	if err := c.Bind(&regReq); err != nil {
 

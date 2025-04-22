@@ -38,12 +38,12 @@ func (s *Service) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 				WithMessage("Phone number or password is incorrect.")
 		}
 
-		accessToken, aErr := s.auth.CreateAccessToken(user.ID)
+		accessToken, aErr := s.auth.CreateAccessToken(user.ID, user.Role)
 		if aErr != nil {
 			return dto.LoginResponse{}, richerr.New(op).WithError(aErr)
 		}
 
-		refreshToken, rErr := s.auth.CreateRefreshToken(user.ID)
+		refreshToken, rErr := s.auth.CreateRefreshToken(user.ID, user.Role)
 		if rErr != nil {
 			return dto.LoginResponse{}, richerr.New(op).WithError(rErr)
 		}

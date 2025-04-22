@@ -3,6 +3,7 @@ package httpserver
 import (
 	"log"
 
+	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -14,14 +15,16 @@ type HttpConfig struct {
 }
 
 type Server struct {
-	cfg         HttpConfig
-	userHandler userhandler.UserHandler
+	cfg               HttpConfig
+	userHandler       userhandler.Handler
+	backofficeHandler backofficeuserhandler.Handler
 }
 
-func New(cfg HttpConfig, userHandler userhandler.UserHandler) Server {
+func New(cfg HttpConfig, userHandler userhandler.Handler, backofficeHandler backofficeuserhandler.Handler) Server {
 	return Server{
-		cfg:         cfg,
-		userHandler: userHandler,
+		cfg:               cfg,
+		userHandler:       userHandler,
+		backofficeHandler: backofficeHandler,
 	}
 }
 
@@ -30,7 +33,8 @@ func (s *Server) Serve() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	s.userHandler.SetUserRoutes(e)
+	s.userHandler.SetRoutes(e)
+	s.backofficeHandler.SetRoutes(e)
 
 	if err := e.Start(s.cfg.Host + ":" + s.cfg.Port); err != nil {
 		log.Fatalf("Couldn't Listen to the %s port.", s.cfg.Port)
