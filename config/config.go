@@ -9,15 +9,19 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 
+	redisAdapter "github.com/aghaghiamh/gocast/QAGame/adapter/redis"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
+	"github.com/aghaghiamh/gocast/QAGame/service/matchingservice"
 )
 
 type Config struct {
-	AuthConfig   authservice.AuthConfig `mapstructure:"auth_params"`
-	DBConfig     mysql.MysqlConfig      `mapstructure:"db_params"`
-	ServerConfig httpserver.HttpConfig  `mapstructure:"server_params"`
+	DBConfig       mysql.MysqlConfig                     `mapstructure:"db_params"`
+	RedisConfig    redisAdapter.Config                   `mapstructure:"redis_params"`
+	ServerConfig   httpserver.HttpConfig                 `mapstructure:"server_params"`
+	AuthConfig     authservice.AuthConfig                `mapstructure:"auth_params"`
+	MatchingConfig matchingservice.MatchingServiceConfig `mapstructure:"matching_service_params"`
 }
 
 func LoadConfig() Config {

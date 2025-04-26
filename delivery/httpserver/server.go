@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
+	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,13 +19,16 @@ type Server struct {
 	cfg               HttpConfig
 	userHandler       userhandler.Handler
 	backofficeHandler backofficeuserhandler.Handler
+	matchingHandler   matchinghandler.Handler
 }
 
-func New(cfg HttpConfig, userHandler userhandler.Handler, backofficeHandler backofficeuserhandler.Handler) Server {
+func New(cfg HttpConfig, userHandler userhandler.Handler, backofficeHandler backofficeuserhandler.Handler,
+	matchingHandler matchinghandler.Handler) Server {
 	return Server{
 		cfg:               cfg,
 		userHandler:       userHandler,
 		backofficeHandler: backofficeHandler,
+		matchingHandler:   matchingHandler,
 	}
 }
 
@@ -35,6 +39,7 @@ func (s *Server) Serve() {
 
 	s.userHandler.SetRoutes(e)
 	s.backofficeHandler.SetRoutes(e)
+	s.matchingHandler.SetRoutes(e)
 
 	if err := e.Start(s.cfg.Host + ":" + s.cfg.Port); err != nil {
 		log.Fatalf("Couldn't Listen to the %s port.", s.cfg.Port)

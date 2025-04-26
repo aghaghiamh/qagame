@@ -7,4 +7,5 @@ const (
 	ErrMsgPhoneNumberAlreadyExist = "phone number is already exist"
 	ErrMsgUnexpected              = "unexpected"
 	ErrMsgUnauthorized            = "unauthorized"
+	ErrMsgCategoryIsNotValid      = "category is not valid"
 )

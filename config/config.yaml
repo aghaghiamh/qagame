@@ -17,3 +17,13 @@ auth_params:
 server_params:
   host: "localhost"
   port: 8080
+
+redis_params:
+  host: "localhost"
+  port: 6379
+  password: "" # TODO: implement later using env variables
+  db: 0
+
+matching_service_params:
+  waiting_timeout: "2m"
+  waiting_prefix: "waiting-list"
