@@ -1,12 +1,17 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"time"
+
 	redisAdapter "github.com/aghaghiamh/gocast/QAGame/adapter/redis"
 	"github.com/aghaghiamh/gocast/QAGame/config"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
+	"github.com/aghaghiamh/gocast/QAGame/scheduler"
 
 	// "github.com/aghaghiamh/gocast/QAGame/repository/migrator"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
@@ -32,15 +37,44 @@ func main() {
 	// Redis Adapter
 	redisAdapter := redisAdapter.New(config.RedisConfig)
 
+	// m := migrator.New("mysql", config.DBConfig)
+	// m.Up()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	// run the cronjob scheduler
+	schDoneCH := make(chan bool)
+	sch := scheduler.New(schDoneCH)
+	go func() {
+		sch.Start()
+	}()
+
+	// run the http server
+	userHandler, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
+	server := httpserver.New(config.ServerConfig, userHandler, backofficeUserHandler, matchingHandler)
+	go func() {
+		server.Serve()
+	}()
+	
+	// Graceful Termination - wait until there is a os.signal on the quit channel then revoke all other children.
+	<- quit
+	schDoneCH <- true
+
+	time.Sleep(3 * time.Second)
+}
+
+func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapter.RedisClient) (
+	userhandler.Handler, matchinghandler.Handler, backofficeuserhandler.Handler) {
 	// Auth Service
 	authSvc := authservice.New(config.AuthConfig)
 
 	// Access-Control / Authorization Service
-	acRepo := accesscontroldb.New(generalMysqlDB)
+	acRepo := accesscontroldb.New(mysqlDB)
 	authorizationSvc := authorizationservice.New(acRepo)
 
 	// User Service
-	userRepo := userdb.New(generalMysqlDB)
+	userRepo := userdb.New(mysqlDB)
 	uservalidator := uservalidator.New(userRepo)
 	userSvc := userservice.New(userRepo, &authSvc)
 	userHandler := userhandler.New(userSvc, authSvc, uservalidator, config.AuthConfig)
@@ -55,9 +89,5 @@ func main() {
 	backofficeUserSvc := backofficeuserservice.New()
 	backofficeUserHandler := backofficeuserhandler.New(backofficeUserSvc, authSvc, config.AuthConfig, authorizationSvc)
 
-	// m := migrator.New("mysql", config.DBConfig)
-	// m.Up()
-
-	server := httpserver.New(config.ServerConfig, userHandler, backofficeUserHandler, matchingHandler)
-	server.Serve()
+	return userHandler, matchingHandler, backofficeUserHandler
 }

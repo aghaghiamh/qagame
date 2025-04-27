@@ -20,9 +20,10 @@ type RedisClient struct {
 func New(redisConfig Config) RedisClient {
 	return RedisClient{
 		driver: redis.NewClient(&redis.Options{
-			Addr:     redisConfig.Host + ":" + strconv.Itoa(redisConfig.Port),
-			Password: redisConfig.Password,
-			DB:       redisConfig.DB,
+			Addr:                  redisConfig.Host + ":" + strconv.Itoa(redisConfig.Port),
+			Password:              redisConfig.Password,
+			DB:                    redisConfig.DB,
+			ContextTimeoutEnabled: true,
 		}),
 	}
 }
