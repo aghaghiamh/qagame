@@ -10,7 +10,6 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
-	"github.com/aghaghiamh/gocast/QAGame/scheduler"
 
 	// "github.com/aghaghiamh/gocast/QAGame/repository/migrator"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
@@ -39,16 +38,6 @@ func main() {
 	// m := migrator.New("mysql", config.DBConfig)
 	// m.Up()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-
-	// run the cronjob scheduler
-	schDoneCH := make(chan bool)
-	sch := scheduler.New(schDoneCH)
-	go func() {
-		sch.Start()
-	}()
-
 	// run the http server
 	userHandler, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
 	server := httpserver.New(config.Server, userHandler, backofficeUserHandler, matchingHandler)
@@ -57,8 +46,9 @@ func main() {
 	}()
 
 	// Graceful Termination - wait until there is a os.signal on the quit channel then revoke all other children.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
 	<-quit
-	schDoneCH <- true
 
 	server.Shutdown()
 }

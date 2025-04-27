@@ -17,11 +17,11 @@ import (
 )
 
 type Config struct {
-	DBConfig       mysql.MysqlConfig                     `mapstructure:"db_params"`
-	RedisConfig    redisAdapter.Config                   `mapstructure:"redis_params"`
-	ServerConfig   httpserver.HttpConfig                 `mapstructure:"server_params"`
-	AuthConfig     authservice.AuthConfig                `mapstructure:"auth_params"`
-	MatchingConfig matchingservice.MatchingServiceConfig `mapstructure:"matching_service_params"`
+	DB          mysql.MysqlConfig                     `mapstructure:"db_params"`
+	Redis       redisAdapter.Config                   `mapstructure:"redis_params"`
+	Server      httpserver.HttpConfig                 `mapstructure:"server_params"`
+	AuthSvc     authservice.AuthConfig                `mapstructure:"auth_params"`
+	MatchingSvc matchingservice.MatchingServiceConfig `mapstructure:"matching_service_params"`
 }
 
 func LoadConfig() Config {
@@ -31,6 +31,8 @@ func LoadConfig() Config {
 
 	viper.SetDefault("auth_params.refresh_subject", "rs")
 	viper.SetDefault("auth_params.access_subject", "as")
+
+	viper.SetDefault("server_params.graceful_shutdown_timeout", "5s")
 
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath(".")
