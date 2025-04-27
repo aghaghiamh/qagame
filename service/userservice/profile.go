@@ -1,15 +1,16 @@
 package userservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
 )
 
-func (s *Service) GetProfile(req dto.UserProfileRequest) (dto.UserProfileResponse, error) {
+func (s *Service) GetProfile(ctx context.Context, req dto.UserProfileRequest) (dto.UserProfileResponse, error) {
 	const op = "userservice.GetUserProfile"
-	user, gErr := s.repo.GetUserByID(req.UserID)
+	user, gErr := s.repo.GetUserByID(ctx, req.UserID)
 	if gErr != nil {
 
 		return dto.UserProfileResponse{}, richerr.New(op).

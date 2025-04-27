@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
@@ -107,12 +108,12 @@ func (s Storage) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
 	return user, nil
 }
 
-func (s Storage) GetUserByID(user_id uint) (entity.User, error) {
+func (s Storage) GetUserByID(ctx context.Context, user_id uint) (entity.User, error) {
 	const op = "mysql.GetUserByID"
 	var fetchedUser User
 
 	query := `SELECT * FROM users WHERE id = ?`
-	row := s.db.QueryRow(query, user_id)
+	row := s.db.QueryRowContext(ctx, query, user_id)
 
 	sErr := userScanner(row, &fetchedUser)
 	if sErr != nil {

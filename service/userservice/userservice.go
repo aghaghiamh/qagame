@@ -1,6 +1,7 @@
 package userservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
@@ -11,7 +12,7 @@ import (
 type UserRepo interface {
 	Register(user entity.User) (entity.User, error)
 	GetUserByPhoneNumber(phoneNumber string) (entity.User, error)
-	GetUserByID(user_id uint) (entity.User, error)
+	GetUserByID(ctx context.Context, user_id uint) (entity.User, error)
 }
 
 type AuthGenerator interface {

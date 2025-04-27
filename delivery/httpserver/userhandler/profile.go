@@ -20,7 +20,8 @@ func (h Handler) GetProfileHandler(c echo.Context) error {
 		UserID: claims.UserID,
 	}
 
-	profileResp, respErr := h.userSvc.GetProfile(profileReq)
+	// TODO: here is an implementation of context without timeout or further functionalities, should be implemented in other handlers, too.
+	profileResp, respErr := h.userSvc.GetProfile(c.Request().Context(), profileReq)
 	if respErr != nil {
 		code, msg := httpmapper.MapResponseCustomErrorToHttp(respErr)
 
