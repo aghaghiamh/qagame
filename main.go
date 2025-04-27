@@ -42,18 +42,19 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-	// run the cronjob scheduler
-	schDoneCH := make(chan bool)
-	sch := scheduler.New(schDoneCH)
-	go func() {
-		sch.Start()
-	}()
 
 	// run the http server
-	userHandler, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
+	userHandler, matchingSvc, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
 	server := httpserver.New(config.Server, userHandler, backofficeUserHandler, matchingHandler)
 	go func() {
 		server.Serve()
+	}()
+
+	// run the cronjob scheduler
+	schDoneCH := make(chan bool)
+	sch := scheduler.New(schDoneCH, matchingSvc)
+	go func() {
+		sch.Start()
 	}()
 
 	// Graceful Termination - wait until there is a os.signal on the quit channel then revoke all other children.
@@ -64,7 +65,7 @@ func main() {
 }
 
 func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapter.RedisClient) (
-	userhandler.Handler, matchinghandler.Handler, backofficeuserhandler.Handler) {
+	userhandler.Handler, matchingservice.Service, matchinghandler.Handler, backofficeuserhandler.Handler) {
 	// Auth Service
 	authSvc := authservice.New(config.AuthSvc)
 
@@ -88,5 +89,5 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 	backofficeUserSvc := backofficeuserservice.New()
 	backofficeUserHandler := backofficeuserhandler.New(backofficeUserSvc, authSvc, config.AuthSvc, authorizationSvc)
 
-	return userHandler, matchingHandler, backofficeUserHandler
+	return userHandler, matchingSvc, matchingHandler, backofficeUserHandler
 }

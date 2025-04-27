@@ -1,6 +1,7 @@
 package matchingservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
@@ -19,4 +20,15 @@ func (s Service) AddToWaitingList(req dto.AddToWaitingListRequest) (dto.AddToWai
 	}
 
 	return dto.AddToWaitingListResponse{WaitingListTimeout: s.svcConfig.WaitingTimeout}, nil
+}
+
+func (s Service) MatchPlayers(ctx context.Context, req dto.MatchPlayersRequest) (dto.MatchPlayersResponse, error) {
+	const op = "matchingservice.MatchPlayers"
+	fmt.Println(op)
+	// get the users in the provided category in req.Category from the redis
+	// based on some logic (probably random at the moment) match each 2 players exist in the redis category key
+	// if all players have been matched together successfuly, remove all from the redis in bulk using ZREMby..., otherway
+	// (odd number or a fail in match) remove one by one from redis
+	// return the pair of matched players in a list of tuples
+	return dto.MatchPlayersResponse{}, nil
 }

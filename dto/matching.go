@@ -14,3 +14,10 @@ type AddToWaitingListRequest struct {
 type AddToWaitingListResponse struct {
 	WaitingListTimeout time.Duration `json:"waiting_list_timeout_in_nanoseconds"`
 }
+
+type MatchPlayersRequest struct {
+	Category entity.Category `json:"category"`
+}
+
+type MatchPlayersResponse struct {
+}
