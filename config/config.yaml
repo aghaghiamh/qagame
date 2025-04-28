@@ -10,6 +10,15 @@ db_params:
   max_open_conn: 10
   max_idle_conn: 10
 
+redis_params:
+  host: "localhost"
+  port: 6379
+  password: "" # TODO: implement later using env variables
+  db: 0
+
+scheduler:
+  match_players_cronjob_intervals_in_mins: "0/5"
+
 auth_params:
   access_token_duration:  "24h"
   refresh_token_duration: "7d"
@@ -18,12 +27,10 @@ server_params:
   host: "localhost"
   port: 8080
 
-redis_params:
-  host: "localhost"
-  port: 6379
-  password: "" # TODO: implement later using env variables
-  db: 0
-
 matching_service_params:
   waiting_timeout: "2m"
   waiting_prefix: "waiting-list"
+
+presence_svc:
+  ttl: "5m"
+  prefix: "presence"

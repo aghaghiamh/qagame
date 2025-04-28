@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type MysqlConfig struct {
+type Config struct {
 	Host     string `mapstructure:"host"`
 	Port     string `mapstructure:"port"`
 	Username string `mapstructure:"username"`
@@ -24,7 +24,7 @@ type MysqlDB struct {
 	db *sql.DB
 }
 
-func New(conf MysqlConfig) (*MysqlDB, error) {
+func New(conf Config) (*MysqlDB, error) {
 	connParameter := fmt.Sprintf("%s:%s@%s(%s:%s)/%s", conf.Username, conf.Password, "", conf.Host, conf.Port, conf.DBName) // the empty string here define the protocol
 	db, err := sql.Open("mysql", connParameter)
 	if err != nil {

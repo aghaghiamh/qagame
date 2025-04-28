@@ -1,5 +1,7 @@
 package richerr
 
+import "fmt"
+
 const (
 
 	// Client Error-4xx (4000-4999)
@@ -51,7 +53,16 @@ func (re RichErr) WithMetadata(metadata map[string]interface{}) RichErr {
 }
 
 func (err RichErr) Error() string {
-	return err.message
+	var msg string
+	if err.message != "" {
+		msg = err.message
+	} else if err.wrappedErr != nil {
+		msg = err.wrappedErr.Error()
+	} else {
+		msg = "no message details have been provided!!"
+	}
+
+	return fmt.Sprintf("error operational path: %s, message: %s", err.op, msg)
 }
 
 func (err RichErr) Code() int {

@@ -12,7 +12,7 @@ import (
 )
 
 func (v MatchingValidator) ValidateAddToWaitingList(req dto.AddToWaitingListRequest) (map[string]string, error) {
-	const op = "validator.ValidateLoginRequest"
+	const op = "validator.ValidateAddToWaitingList"
 
 	err := validation.ValidateStruct(&req,
 

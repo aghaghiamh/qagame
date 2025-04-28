@@ -11,12 +11,12 @@ import (
 // TODO: This will create the gorp_migrations in the users table; rename it to the migrations.
 
 type Migrator struct {
-	dbConfig   mysql.MysqlConfig
+	dbConfig   mysql.Config
 	dialect    string
 	migrations *migrate.FileMigrationSource
 }
 
-func New(dialect string, dbConfig mysql.MysqlConfig) Migrator {
+func New(dialect string, dbConfig mysql.Config) Migrator {
 	migrations := &migrate.FileMigrationSource{
 		Dir: "./repository/mysql/migrations",
 	}

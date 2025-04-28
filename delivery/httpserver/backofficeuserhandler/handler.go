@@ -9,14 +9,14 @@ import (
 type Handler struct {
 	backofficeUserSvc backofficeuserservice.Service
 	authSvc           authservice.Service
-	authConfig        authservice.AuthConfig
+	authConfig        authservice.Config
 	authorizationSvc  authorizationservice.Service
 }
 
 func New(
 	backofficeUserSvc backofficeuserservice.Service,
 	authSvc authservice.Service,
-	authConfig authservice.AuthConfig,
+	authConfig authservice.Config,
 	authorizationSvc authorizationservice.Service,
 ) Handler {
 	return Handler{

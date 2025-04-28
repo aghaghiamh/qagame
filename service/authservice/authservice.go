@@ -10,10 +10,10 @@ import (
 )
 
 type Service struct {
-	cfg AuthConfig
+	cfg Config
 }
 
-type AuthConfig struct {
+type Config struct {
 	SignKey              string        `mapstructure:"sign_key"`
 	AccessSubject        string        `mapstructure:"access_subject"`
 	RefreshSubject       string        `mapstructure:"refresh_subject"`
@@ -21,7 +21,7 @@ type AuthConfig struct {
 	RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duraiton"`
 }
 
-func New(authCfg AuthConfig) Service {
+func New(authCfg Config) Service {
 
 	return Service{
 		cfg: authCfg,

@@ -9,14 +9,20 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+type Config struct {
+	MatchPlayersCronjobIntervalsInMins string `mapstructure:"match_players_cronjob_intervals_in_mins"`
+}
+
 type Scheduler struct {
-	done chan bool
+	config      Config
+	done        chan bool
 	matchingSVC matchingservice.Service
 }
 
-func New(done chan bool, matchingSVC matchingservice.Service) Scheduler {
+func New(config Config, done chan bool, matchingSVC matchingservice.Service) Scheduler {
 	return Scheduler{
-		done: done,
+		config:      config,
+		done:        done,
 		matchingSVC: matchingSVC,
 	}
 }
@@ -27,7 +33,8 @@ func (s Scheduler) Start() {
 	fmt.Println("Scheduler has been started!!!")
 
 	c := cron.New()
-	if _, err := c.AddFunc("* * * * *", s.ScheduleMatchPlayersInWaitingList); err != nil {
+	matchPlayersIntervals := fmt.Sprintf("%s * * * *", s.config.MatchPlayersCronjobIntervalsInMins)
+	if _, err := c.AddFunc(matchPlayersIntervals, s.ScheduleMatchPlayersInWaitingList); err != nil {
 		fmt.Println("Schedule Err: ", err)
 	}
 	c.Start()

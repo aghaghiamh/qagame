@@ -10,11 +10,11 @@ type Handler struct {
 	userSvc    userservice.Service
 	validator  uservalidator.UserValidator
 	authSvc    authservice.Service
-	authConfig authservice.AuthConfig
+	authConfig authservice.Config
 }
 
 func New(userSvc userservice.Service, authSvc authservice.Service,
-	validator uservalidator.UserValidator, authConfig authservice.AuthConfig) Handler {
+	validator uservalidator.UserValidator, authConfig authservice.Config) Handler {
 	return Handler{
 		userSvc:    userSvc,
 		authSvc:    authSvc,

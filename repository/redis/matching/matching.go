@@ -2,10 +2,10 @@ package matching
 
 import (
 	"context"
-	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/pkg/errmsg"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/timestamp"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -15,7 +15,7 @@ func (s *Storage) AddToWaitingList(key string, userID uint) error {
 	// As if the user already requests for a game in the specific category, we just update it's timestamp to
 	// Now, we might get the 0 for number of Operation have happened, then it shouldn't be taken into account.
 	_, aErr := s.adapter.Driver().ZAdd(context.Background(), key, redis.Z{
-		Score:  float64(time.Now().Unix()),
+		Score:  float64(timestamp.Now()),
 		Member: userID,
 	}).Result()
 

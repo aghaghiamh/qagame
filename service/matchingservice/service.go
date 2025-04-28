@@ -3,11 +3,11 @@ package matchingservice
 import "time"
 
 type Service struct {
-	repo      Reopository
-	svcConfig MatchingServiceConfig
+	repo   Reopository
+	config Config
 }
 
-type MatchingServiceConfig struct {
+type Config struct {
 	WaitingTimeout     time.Duration `mapstructure:"waiting_timeout"`
 	RedisWaitingPrefix string        `mapstructure:"waiting_prefix"`
 }
@@ -16,9 +16,9 @@ type Reopository interface {
 	AddToWaitingList(string, uint) error
 }
 
-func New(repo Reopository, svcConfig MatchingServiceConfig) Service {
+func New(repo Reopository, config Config) Service {
 	return Service{
-		repo:      repo,
-		svcConfig: svcConfig,
+		repo:   repo,
+		config: config,
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Auth(authSvc authservice.Service, authConf authservice.AuthConfig) echo.MiddlewareFunc {
+func Auth(authSvc authservice.Service, authConf authservice.Config) echo.MiddlewareFunc {
 	return ejwt.WithConfig(ejwt.Config{
 		ContextKey: constant.AuthMiddlewareContextKey,
 		SigningKey: authConf.SignKey,

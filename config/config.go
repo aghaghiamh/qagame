@@ -12,16 +12,20 @@ import (
 	redisAdapter "github.com/aghaghiamh/gocast/QAGame/adapter/redis"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
+	"github.com/aghaghiamh/gocast/QAGame/scheduler"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/matchingservice"
+	"github.com/aghaghiamh/gocast/QAGame/service/presenceservice"
 )
 
 type Config struct {
-	DB          mysql.MysqlConfig                     `mapstructure:"db_params"`
-	Redis       redisAdapter.Config                   `mapstructure:"redis_params"`
-	Server      httpserver.HttpConfig                 `mapstructure:"server_params"`
-	AuthSvc     authservice.AuthConfig                `mapstructure:"auth_params"`
-	MatchingSvc matchingservice.MatchingServiceConfig `mapstructure:"matching_service_params"`
+	DB          mysql.Config           `mapstructure:"db_params"`
+	Redis       redisAdapter.Config    `mapstructure:"redis_params"`
+	Scheduler   scheduler.Config       `mapstructure:"scheduler"`
+	Server      httpserver.HttpConfig  `mapstructure:"server_params"`
+	AuthSvc     authservice.Config     `mapstructure:"auth_params"`
+	MatchingSvc matchingservice.Config `mapstructure:"matching_service_params"`
+	PresenceSvc presenceservice.Config `mapstructure:"presence_svc"`
 }
 
 func LoadConfig() Config {

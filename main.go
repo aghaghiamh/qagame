@@ -17,9 +17,11 @@ import (
 	accesscontroldb "github.com/aghaghiamh/gocast/QAGame/repository/mysql/accesscontrol"
 	userdb "github.com/aghaghiamh/gocast/QAGame/repository/mysql/user"
 	matchingdb "github.com/aghaghiamh/gocast/QAGame/repository/redis/matching"
+	"github.com/aghaghiamh/gocast/QAGame/repository/redis/presence"
 	"github.com/aghaghiamh/gocast/QAGame/service/authorizationservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/backofficeuserservice"
+	"github.com/aghaghiamh/gocast/QAGame/service/presenceservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/userservice"
 	"github.com/aghaghiamh/gocast/QAGame/validator/matchingvalidator"
 	"github.com/aghaghiamh/gocast/QAGame/validator/uservalidator"
@@ -42,7 +44,6 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-
 	// run the http server
 	userHandler, matchingSvc, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
 	server := httpserver.New(config.Server, userHandler, backofficeUserHandler, matchingHandler)
@@ -52,7 +53,7 @@ func main() {
 
 	// run the cronjob scheduler
 	schDoneCH := make(chan bool)
-	sch := scheduler.New(schDoneCH, matchingSvc)
+	sch := scheduler.New(config.Scheduler, schDoneCH, matchingSvc)
 	go func() {
 		sch.Start()
 	}()
@@ -73,6 +74,10 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 	acRepo := accesscontroldb.New(mysqlDB)
 	authorizationSvc := authorizationservice.New(acRepo)
 
+	// Presence Service
+	presenceRepo := presence.New(redisAdapter)
+	presenceSvc := presenceservice.New(config.PresenceSvc, presenceRepo)
+
 	// User Service
 	userRepo := userdb.New(mysqlDB)
 	uservalidator := uservalidator.New(userRepo)
@@ -83,7 +88,7 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 	matchingRepo := matchingdb.New(redisAdapter)
 	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc)
 	matchingValidator := matchingvalidator.New(matchingRepo)
-	matchingHandler := matchinghandler.New(matchingSvc, authSvc, matchingValidator, config.AuthSvc)
+	matchingHandler := matchinghandler.New(matchingSvc, authSvc, presenceSvc, matchingValidator, config.AuthSvc)
 
 	// Back-Office Service
 	backofficeUserSvc := backofficeuserservice.New()
