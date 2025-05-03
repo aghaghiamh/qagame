@@ -16,8 +16,8 @@ type AddToWaitingListResponse struct {
 }
 
 type MatchPlayersRequest struct {
-	Category entity.Category `json:"category"`
 }
 
 type MatchPlayersResponse struct {
+	MatchedUsers []entity.MatchedUsers
 }

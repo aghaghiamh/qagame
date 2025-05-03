@@ -1,20 +1,22 @@
 package entity
 
+import "github.com/samber/lo"
+
 type Category string
 
 const (
 	SportCategory Category = "sport"
+	// MusicCategory Category = "music"
 )
 
+func AllCategories() []Category {
+	return []Category{
+		SportCategory,
+		// Warning: Add more categories here as you develop
+		// MusicCategory,
+	}
+}
+
 func (c Category) IsValid() bool {
-	// TODO: better approach instead of each time creation of this array for validation.
-	validCategorySet := map[Category]bool{
-		"sport": true,
-	}
-
-	if _, ok := validCategorySet[c]; ok {
-		return true
-	}
-
-	return false
+	return lo.Contains(AllCategories(), c)
 }

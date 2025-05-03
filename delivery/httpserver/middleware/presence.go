@@ -30,7 +30,7 @@ func Presence(presenceSvc presenceservice.Service) echo.MiddlewareFunc {
 				return echo.NewHTTPError(richerr.ErrUnexpected, err.Error())
 			}
 
-			return nil
+			return next(c)
 		}
 	}
 }

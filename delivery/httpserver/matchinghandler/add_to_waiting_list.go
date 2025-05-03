@@ -1,7 +1,9 @@
 package matchinghandler
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/claims"
@@ -33,12 +35,25 @@ func (h Handler) AddToWaitingListHandler(c echo.Context) error {
 		})
 	}
 
-	resp, err := h.matchingSvc.AddToWaitingList(req)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), time.Minute)
+	defer cancel()
+
+	resp, err := h.matchingSvc.AddToWaitingList(ctx, req)
 	if err != nil {
 		code, msg := httpmapper.MapResponseCustomErrorToHttp(err)
 
 		return echo.NewHTTPError(code, msg)
 	}
 
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (h Handler) GetFromWaitingListHandler(c echo.Context) error {
+	resp, err := h.matchingSvc.MatchPlayers(context.Background(), dto.MatchPlayersRequest{})
+	if err != nil {
+		code, msg := httpmapper.MapResponseCustomErrorToHttp(err)
+
+		return echo.NewHTTPError(code, msg)
+	}
 	return c.JSON(http.StatusOK, resp)
 }

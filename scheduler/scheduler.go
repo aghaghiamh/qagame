@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/service/matchingservice"
@@ -34,7 +35,7 @@ func (s Scheduler) Start() {
 
 	c := cron.New()
 	matchPlayersIntervals := fmt.Sprintf("%s * * * *", s.config.MatchPlayersCronjobIntervalsInMins)
-	if _, err := c.AddFunc(matchPlayersIntervals, s.ScheduleMatchPlayersInWaitingList); err != nil {
+	if _, err := c.AddFunc(matchPlayersIntervals, s.MatchWaitedPlayers); err != nil {
 		fmt.Println("Schedule Err: ", err)
 	}
 	c.Start()
@@ -46,7 +47,12 @@ func (s Scheduler) Start() {
 	}
 }
 
-func (s Scheduler) ScheduleMatchPlayersInWaitingList() {
-	fmt.Println("ScheduleMatchPlayersInWaitingList")
-	s.matchingSVC.MatchPlayers(context.Background(), dto.MatchPlayersRequest{})
+func (s Scheduler) MatchWaitedPlayers() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	_, err := s.matchingSVC.MatchPlayers(ctx, dto.MatchPlayersRequest{})
+	if err != nil {
+		fmt.Println(err)
+	}
 }

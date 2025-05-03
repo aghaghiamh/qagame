@@ -28,9 +28,10 @@ server_params:
   port: 8080
 
 matching_service_params:
-  waiting_timeout: "2m"
+  max_num_of_users_to_be_fetched_in_each_iter: 100
+  waiting_timeout: "30m"
   waiting_prefix: "waiting-list"
 
 presence_svc:
-  ttl: "5m"
+  expected_online_time: "5m" 
   prefix: "presence"

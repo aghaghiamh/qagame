@@ -86,7 +86,8 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 
 	// Matching Service
 	matchingRepo := matchingdb.New(redisAdapter)
-	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc)
+	// TODO: Implement the presence call using grpc
+	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc, presenceSvc)
 	matchingValidator := matchingvalidator.New(matchingRepo)
 	matchingHandler := matchinghandler.New(matchingSvc, authSvc, presenceSvc, matchingValidator, config.AuthSvc)
 
