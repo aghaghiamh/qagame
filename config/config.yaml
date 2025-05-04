@@ -17,7 +17,7 @@ redis_params:
   db: 0
 
 scheduler:
-  match_players_cronjob_intervals_in_mins: "0/5"
+  match_players_cronjob_intervals_in_mins: "*"
 
 auth_params:
   access_token_duration:  "24h"
@@ -29,9 +29,9 @@ server_params:
 
 matching_service_params:
   max_num_of_users_to_be_fetched_in_each_iter: 100
-  waiting_timeout: "30m"
+  waiting_timeout: "1h"
   waiting_prefix: "waiting-list"
 
 presence_svc:
-  expected_online_time: "5m" 
+  expected_online_time: "30m" 
   prefix: "presence"

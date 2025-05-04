@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
+	"github.com/aghaghiamh/gocast/QAGame/adapter/presenceclient"
 	redisAdapter "github.com/aghaghiamh/gocast/QAGame/adapter/redis"
 	"github.com/aghaghiamh/gocast/QAGame/config"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver"
@@ -11,6 +14,8 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
 	"github.com/aghaghiamh/gocast/QAGame/scheduler"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	// "github.com/aghaghiamh/gocast/QAGame/repository/migrator"
 	"github.com/aghaghiamh/gocast/QAGame/repository/mysql"
@@ -38,14 +43,20 @@ func main() {
 	// Redis Adapter
 	redisAdapter := redisAdapter.New(config.Redis)
 
-	// m := migrator.New("mysql", config.DBConfig)
-	// m.Up()
+	// Initialize gRPC client connection
+	address := fmt.Sprintf(":%d", 8089)
+	conn, cErr := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if cErr != nil {
+		log.Fatalf("Failed to connect to presence service: %v", cErr)
+	}
+	defer conn.Close()
+	presenceClient := presenceclient.New(conn)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
 	// run the http server
-	userHandler, matchingSvc, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter)
+	userHandler, matchingSvc, matchingHandler, backofficeUserHandler := setup(config, generalMysqlDB, redisAdapter, presenceClient)
 	server := httpserver.New(config.Server, userHandler, backofficeUserHandler, matchingHandler)
 	go func() {
 		server.Serve()
@@ -65,7 +76,7 @@ func main() {
 	server.Shutdown()
 }
 
-func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapter.RedisClient) (
+func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapter.RedisClient, presenceClient presenceclient.Client) (
 	userhandler.Handler, matchingservice.Service, matchinghandler.Handler, backofficeuserhandler.Handler) {
 	// Auth Service
 	authSvc := authservice.New(config.AuthSvc)
@@ -86,8 +97,7 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 
 	// Matching Service
 	matchingRepo := matchingdb.New(redisAdapter)
-	// TODO: Implement the presence call using grpc
-	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc, presenceSvc)
+	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc, presenceClient)
 	matchingValidator := matchingvalidator.New(matchingRepo)
 	matchingHandler := matchinghandler.New(matchingSvc, authSvc, presenceSvc, matchingValidator, config.AuthSvc)
 

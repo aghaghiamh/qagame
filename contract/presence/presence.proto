@@ -1,0 +1,19 @@
+syntax = "proto3";
+option go_package = "contract/golang/presence";
+
+service PresenceService {
+    rpc GetUsersAvailabilityInfo(GetUsersAvailabilityInfoRequest) returns (GetUsersAvailabilityInfoResponse) ;
+}
+
+message GetUsersAvailabilityInfoRequest {
+    repeated uint64 user_ids = 1;
+}
+
+message GetUsersAvailabilityInfoResponse {
+    repeated UserAvailabilityInfo users_info = 1;
+}
+
+message UserAvailabilityInfo {
+    uint64 user_id = 1;
+	int64 last_online_at = 2;
+}
