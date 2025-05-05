@@ -3,10 +3,12 @@ package matchingservice
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/entity"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/eventencoder"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
 	"github.com/samber/lo"
 )
@@ -29,39 +31,37 @@ func (s Service) MatchPlayers(ctx context.Context, _ dto.MatchPlayersRequest) (d
 	const op = richerr.Operation("matchingservice.MatchPlayers")
 
 	wg := &sync.WaitGroup{}
-	matchedUsers := []entity.MatchedUsers{}
-	var mutex sync.Mutex
 
 	for _, category := range entity.AllCategories() {
 		wg.Add(1)
 		go func(cat string) {
 			defer wg.Done()
 
-			categoryMatchedPlayers, err := s.matchCategoryPalyers(ctx, cat)
+			err := s.matchCategoryPalyers(ctx, cat)
 			if err != nil {
 				richerr.New(op).WithError(err)
 				return
 			}
 
-			mutex.Lock()
-			matchedUsers = append(matchedUsers, categoryMatchedPlayers...)
-			mutex.Unlock()
 		}(string(category))
 	}
 
 	wg.Wait()
-	return dto.MatchPlayersResponse{
-		MatchedUsers: matchedUsers,
-	}, nil
+	return dto.MatchPlayersResponse{}, nil
 }
 
-func (s Service) matchCategoryPalyers(ctx context.Context, category string) ([]entity.MatchedUsers, error) {
+func (s Service) matchCategoryPalyers(ctx context.Context, category string) (error) {
 	const op = richerr.Operation("matchingservice.matchCategoryPalyers")
 
 	key := s.genWaitingListKey(string(category))
 	wMems, wErr := s.repo.GetFromWaitingList(ctx, key, s.config.maxNumOfUsers)
 	if wErr != nil {
-		return []entity.MatchedUsers{}, richerr.New(op).WithError(wErr)
+		return richerr.New(op).WithError(wErr)
+	}
+
+	if len(wMems) <= 0 {
+		log.Printf("No waited user for %s key", key)
+		return nil
 	}
 
 	presenceReq := dto.PresenceGetUsersInfoRequest{
@@ -71,7 +71,7 @@ func (s Service) matchCategoryPalyers(ctx context.Context, category string) ([]e
 	}
 	resp, err := s.presenceClient.GetUsersAvailabilityInfo(ctx, presenceReq)
 	if err != nil {
-		return []entity.MatchedUsers{}, richerr.New(op).WithError(err)
+		return richerr.New(op).WithError(err)
 	}
 
 	uIDsToBeRemvoed := []uint{}
@@ -86,19 +86,23 @@ func (s Service) matchCategoryPalyers(ctx context.Context, category string) ([]e
 
 	go s.repo.RemoveFromWaitingList(key, uIDsToBeRemvoed)
 
-	matchedUserIDs := []entity.MatchedUsers{}
+	matchedUserIDsTobeRemoved := []uint{}
 	for i := 0; i < len(onlineUsers)-1; i += 2 {
-		matchedUserIDs = append(matchedUserIDs,
-			entity.MatchedUsers{
-				Category: entity.Category(category),
-				UserIDs:  []uint{onlineUsers[i].UserID, onlineUsers[i+1].UserID},
-			})
+		matchedPlayersIDs := []uint{onlineUsers[i].UserID, onlineUsers[i+1].UserID}
+		matchedPlayers := entity.MatchedPlayers{
+			Category: entity.Category(category),
+			UserIDs:  matchedPlayersIDs}
+		matchedUserIDsTobeRemoved = append(matchedUserIDsTobeRemoved, matchedPlayersIDs...)
 
-		// TODO: publish an event here for matched players, and do not create a matchedUserIDs to pass to the parent func.
-		// TODO: remove or add to removeFromRedis list to be removed from the zset key.
+		payload, err := eventencoder.MatchedPlayerUsersEncoder(matchedPlayers)
+		if err != nil {
+			return richerr.New(op).WithError(err)
+		}
+		s.broker.Publish(entity.MatchingMatchedUsersEvent, payload)
 	}
+	go s.repo.RemoveFromWaitingList(key, matchedUserIDsTobeRemoved)
 
-	return matchedUserIDs, nil
+	return nil
 }
 
 func (s Service) genWaitingListKey(category string) string {

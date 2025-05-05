@@ -4,7 +4,7 @@ type WaitingMember struct {
 	UserID uint
 }
 
-type MatchedUsers struct {
+type MatchedPlayers struct {
 	Category Category
 	UserIDs  []uint
 }

@@ -97,7 +97,7 @@ func setup(config config.Config, mysqlDB *mysql.MysqlDB, redisAdapter redisAdapt
 
 	// Matching Service
 	matchingRepo := matchingdb.New(redisAdapter)
-	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc, presenceClient)
+	matchingSvc := matchingservice.New(matchingRepo, config.MatchingSvc, redisAdapter, presenceClient)
 	matchingValidator := matchingvalidator.New(matchingRepo)
 	matchingHandler := matchinghandler.New(matchingSvc, authSvc, presenceSvc, matchingValidator, config.AuthSvc)
 

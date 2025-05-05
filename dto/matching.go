@@ -19,5 +19,5 @@ type MatchPlayersRequest struct {
 }
 
 type MatchPlayersResponse struct {
-	MatchedUsers []entity.MatchedUsers
+	MatchedUsers []entity.MatchedPlayers
 }

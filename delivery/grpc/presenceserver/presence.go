@@ -9,6 +9,7 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/contract/goproto/presence"
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/protobufmapper"
+	"github.com/aghaghiamh/gocast/QAGame/pkg/richerr"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/typemapper"
 	"github.com/aghaghiamh/gocast/QAGame/service/presenceservice"
 	"google.golang.org/grpc"
@@ -28,6 +29,9 @@ func New(service *presenceservice.Service) Server {
 
 func (s Server) GetUsersAvailabilityInfo(ctx context.Context, req *presence.GetUsersAvailabilityInfoRequest) (
 	*presence.GetUsersAvailabilityInfoResponse, error) {
+	const op = richerr.Operation("presenceservice.GetUsersAvailabilityInfo")
+
+	log.Printf("%s - user IDs to be fetched: %v\n", op, req.UserIds)
 
 	userIDs := typemapper.ArrayMapper(req.UserIds, func(u uint64) uint { return uint(u) })
 	resp, iErr := s.Service.GetUsersAvailabilityInfo(ctx, dto.PresenceGetUsersInfoRequest{

@@ -31,8 +31,15 @@ func (s Storage) GetUsersTimestamp(ctx context.Context, keys []string) ([]int64,
 	}
 
 	listUserTs := lo.Map(userTsStrs, func(ts interface{}, _ int) int64 {
-		userTs, _ := strconv.Atoi(ts.(string))
-		return int64(userTs)
+		if ts == nil {
+			return 0
+		}
+		tsStr, ok := ts.(string)
+		if !ok {
+			return 0
+		}
+		userTs, _ := strconv.ParseInt(tsStr, 10, 64)
+		return userTs
 	})
 
 	return listUserTs, nil

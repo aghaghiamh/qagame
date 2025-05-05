@@ -4,13 +4,19 @@ import (
 	"context"
 	"time"
 
+	"github.com/aghaghiamh/gocast/QAGame/contract/broker"
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/entity"
 )
 
+type PresenceClient interface {
+	GetUsersAvailabilityInfo(ctx context.Context, req dto.PresenceGetUsersInfoRequest) (dto.PresenceGetUsersInfoResponse, error)
+}
+
 type Service struct {
 	repo           Reopository
 	config         Config
+	broker         broker.Broker
 	presenceClient PresenceClient
 }
 
@@ -27,14 +33,11 @@ type Reopository interface {
 	RemoveFromWaitingList(key string, userIDs []uint)
 }
 
-type PresenceClient interface {
-	GetUsersAvailabilityInfo(ctx context.Context, req dto.PresenceGetUsersInfoRequest) (dto.PresenceGetUsersInfoResponse, error)
-}
-
-func New(repo Reopository, config Config, presenceClient PresenceClient) Service {
+func New(repo Reopository, config Config, broker broker.Broker, presenceClient PresenceClient) Service {
 	return Service{
 		repo:           repo,
 		config:         config,
+		broker:         broker,
 		presenceClient: presenceClient,
 	}
 }

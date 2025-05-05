@@ -18,16 +18,16 @@ func main() {
 		log.Fatalf("couldn't create the presence clinet on %s address.", address)
 	}
 	defer conn.Close()
-	
-	client :=presenceclient.New(conn)
+
+	client := presenceclient.New(conn)
 	resp, gErr := client.GetUsersAvailabilityInfo(context.Background(), dto.PresenceGetUsersInfoRequest{
 		UserIDs: []uint{2},
 	})
 	if gErr != nil {
 		log.Printf(gErr.Error())
-		return 
+		return
 	}
-	for _, uInfo := range(resp.UsersAvailabilityInfo) {
+	for _, uInfo := range resp.UsersAvailabilityInfo {
 		fmt.Println("userID: ", uInfo.UserID, " user Last Online Timestamp: ", uInfo.LastOnlineAt)
 	}
 }
