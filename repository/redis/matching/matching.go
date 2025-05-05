@@ -2,7 +2,10 @@ package matching
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"strconv"
+	"time"
 
 	"github.com/aghaghiamh/gocast/QAGame/entity"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/errmsg"
@@ -49,18 +52,24 @@ func (s *Storage) GetFromWaitingList(ctx context.Context, key string, maxNumOfUs
 	return WatingMems, nil
 }
 
-func (s *Storage) RemoveFromWaitingList(ctx context.Context, key string, userIDs []uint) error {
+func (s *Storage) RemoveFromWaitingList(key string, userIDs []uint) {
 	const op = richerr.Operation("redis.matching.RemoveFromWaitingList")
 
-	// Convert uint slice to interface{} slice for Redis
+	if len(userIDs) <= 0 {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Minute)
+	defer cancel()
+
 	members := make([]interface{}, len(userIDs))
 	for i, id := range userIDs {
-		members[i] = strconv.FormatUint(uint64(id), 10)
+		members[i] = strconv.Itoa(int(id))
 	}
 
 	if _, err := s.adapter.Driver().ZRem(ctx, key, members...).Result(); err != nil {
-		return richerr.New(op).WithError(err).WithCode(richerr.ErrUnexpected)
+		fmt.Println("matching remover error: ", err)
+		err := richerr.New(op).WithError(err).WithCode(richerr.ErrUnexpected)
+		log.Printf(err.Error())
 	}
-
-	return nil
 }

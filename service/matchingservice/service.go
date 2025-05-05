@@ -20,10 +20,11 @@ type Config struct {
 	RedisWaitingPrefix string        `mapstructure:"waiting_prefix"`
 }
 
+// For Async/some-other use-cases ctx should be initialized inside the funciton.
 type Reopository interface {
 	AddToWaitingList(ctx context.Context, key string, userID uint) error
 	GetFromWaitingList(ctx context.Context, key string, maxNumOfUsers int) ([]entity.WaitingMember, error)
-	RemoveFromWaitingList(ctx context.Context, key string, userIDs []uint) error
+	RemoveFromWaitingList(key string, userIDs []uint)
 }
 
 type PresenceClient interface {

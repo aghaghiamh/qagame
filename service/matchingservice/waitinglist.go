@@ -74,21 +74,17 @@ func (s Service) matchCategoryPalyers(ctx context.Context, category string) ([]e
 		return []entity.MatchedUsers{}, richerr.New(op).WithError(err)
 	}
 
-	removeFromRedis := []uint{}
+	uIDsToBeRemvoed := []uint{}
 	onlineUsers := []entity.UserAvailabilityInfo{}
 	for _, uInfo := range resp.UsersAvailabilityInfo {
 		if !lo.Contains(presenceReq.UserIDs, uInfo.UserID) {
-			removeFromRedis = append(removeFromRedis, uInfo.UserID)
+			uIDsToBeRemvoed = append(uIDsToBeRemvoed, uInfo.UserID)
 			continue
 		}
 		onlineUsers = append(onlineUsers, uInfo)
 	}
 
-	// TODO: remove the offline players from redis
-	// if err := s.repo.RemoveFromWaitingList(ctx, key, removeFromRedis); err != nil {
-	// 	fmt.Println(err)
-	// 	return [][]uint{}, richerr.New(op).WithError(err)
-	// }
+	go s.repo.RemoveFromWaitingList(key, uIDsToBeRemvoed)
 
 	matchedUserIDs := []entity.MatchedUsers{}
 	for i := 0; i < len(onlineUsers)-1; i += 2 {
