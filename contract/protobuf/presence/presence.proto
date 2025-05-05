@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "contract/golang/presence";
+option go_package = "contract/goproto/presence";
 
 service PresenceService {
     rpc GetUsersAvailabilityInfo(GetUsersAvailabilityInfoRequest) returns (GetUsersAvailabilityInfoResponse) ;

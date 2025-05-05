@@ -59,7 +59,7 @@ func (s *Storage) RemoveFromWaitingList(key string, userIDs []uint) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1 * time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	members := make([]interface{}, len(userIDs))

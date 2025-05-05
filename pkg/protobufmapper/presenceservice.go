@@ -1,7 +1,7 @@
 package protobufmapper
 
 import (
-	"github.com/aghaghiamh/gocast/QAGame/contract/golang/presence"
+	"github.com/aghaghiamh/gocast/QAGame/contract/goproto/presence"
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/entity"
 )

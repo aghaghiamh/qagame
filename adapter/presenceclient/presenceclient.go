@@ -3,7 +3,7 @@ package presenceclient
 import (
 	"context"
 
-	"github.com/aghaghiamh/gocast/QAGame/contract/golang/presence"
+	"github.com/aghaghiamh/gocast/QAGame/contract/goproto/presence"
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/protobufmapper"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/typemapper"
@@ -23,17 +23,16 @@ func New(conn *grpc.ClientConn) Client {
 func (c Client) GetUsersAvailabilityInfo(ctx context.Context, req dto.PresenceGetUsersInfoRequest) (
 	dto.PresenceGetUsersInfoResponse, error) {
 
-	userIDs := typemapper.ArrayMapper(req.UserIDs, func (uID uint) uint64  {
+	userIDs := typemapper.ArrayMapper(req.UserIDs, func(uID uint) uint64 {
 		return uint64(uID)
 	})
-	
+
 	resp, err := c.client.GetUsersAvailabilityInfo(ctx, &presence.GetUsersAvailabilityInfoRequest{
 		UserIds: userIDs})
-	
+
 	if err != nil {
-		return dto.PresenceGetUsersInfoResponse{}, err 
+		return dto.PresenceGetUsersInfoResponse{}, err
 	}
 
 	return *protobufmapper.MapProtoUserAvailabilityInfoResponseToDto(*resp), nil
 }
-

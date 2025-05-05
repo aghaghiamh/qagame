@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/aghaghiamh/gocast/QAGame/contract/golang/presence"
+	"github.com/aghaghiamh/gocast/QAGame/contract/goproto/presence"
 	"github.com/aghaghiamh/gocast/QAGame/dto"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/protobufmapper"
 	"github.com/aghaghiamh/gocast/QAGame/pkg/typemapper"
