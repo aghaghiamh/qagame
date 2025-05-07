@@ -13,7 +13,9 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
+	"github.com/aghaghiamh/gocast/QAGame/logger"
 	"github.com/aghaghiamh/gocast/QAGame/scheduler"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -36,6 +38,8 @@ import (
 
 func main() {
 	config := config.LoadConfig()
+
+	logger.Logger.Named("main").Info("config info", zap.Any("config", config))
 
 	// General DB Connector
 	generalMysqlDB, _ := mysql.New(config.DB)

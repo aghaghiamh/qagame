@@ -9,8 +9,10 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/backofficeuserhandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/matchinghandler"
 	"github.com/aghaghiamh/gocast/QAGame/delivery/httpserver/userhandler"
+	"github.com/aghaghiamh/gocast/QAGame/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.uber.org/zap"
 )
 
 type HttpConfig struct {
@@ -39,7 +41,36 @@ func New(cfg HttpConfig, userHandler userhandler.Handler, backofficeHandler back
 }
 
 func (s *Server) Serve() {
-	s.router.Use(middleware.Logger())
+	s.router.Use(middleware.RequestID())
+	
+	s.router.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogRequestID: true,
+		LogLatency: true,
+		LogMethod: true,
+		LogURI: true,
+		LogRemoteIP: true,
+		LogError: true,
+		LogStatus: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			var errMsg string
+			if v.Error != nil {
+				errMsg = v.Error.Error()
+			}
+			
+			logger.Logger.Info("request",
+				zap.String("request_id", v.RequestID),
+				zap.Duration("latency", v.Latency),
+				zap.String("method", v.Method),
+				zap.String("uri", v.URI),
+				zap.String("remote_ip", v.RemoteIP),
+				zap.Error(v.Error),
+				zap.String("error-msg", errMsg),
+				zap.Int("status", v.Status),
+			)
+
+			return nil
+		},
+	}))
 	s.router.Use(middleware.Recover())
 
 	s.userHandler.SetRoutes(s.router)
