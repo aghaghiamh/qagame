@@ -2,3 +2,5 @@
 .env
 /redis-data
 /logs
+.DS_Store
+/pprof_stats

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-func (c RedisClient) Publish(event entity.Event, payload string){
+func (c RedisClient) Publish(event entity.Event, payload string) {
 	const op = "redisAdapter.Publish"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)

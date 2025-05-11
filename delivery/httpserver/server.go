@@ -42,21 +42,21 @@ func New(cfg HttpConfig, userHandler userhandler.Handler, backofficeHandler back
 
 func (s *Server) Serve() {
 	s.router.Use(middleware.RequestID())
-	
+
 	s.router.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogRequestID: true,
-		LogLatency: true,
-		LogMethod: true,
-		LogURI: true,
-		LogRemoteIP: true,
-		LogError: true,
-		LogStatus: true,
+		LogLatency:   true,
+		LogMethod:    true,
+		LogURI:       true,
+		LogRemoteIP:  true,
+		LogError:     true,
+		LogStatus:    true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			var errMsg string
 			if v.Error != nil {
 				errMsg = v.Error.Error()
 			}
-			
+
 			logger.Logger.Info("request",
 				zap.String("request_id", v.RequestID),
 				zap.Duration("latency", v.Latency),

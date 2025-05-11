@@ -50,7 +50,7 @@ func (s Service) MatchPlayers(ctx context.Context, _ dto.MatchPlayersRequest) (d
 	return dto.MatchPlayersResponse{}, nil
 }
 
-func (s Service) matchCategoryPalyers(ctx context.Context, category string) (error) {
+func (s Service) matchCategoryPalyers(ctx context.Context, category string) error {
 	const op = richerr.Operation("matchingservice.matchCategoryPalyers")
 
 	key := s.genWaitingListKey(string(category))

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 
@@ -28,18 +30,26 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/service/authorizationservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/authservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/backofficeuserservice"
+	"github.com/aghaghiamh/gocast/QAGame/service/matchingservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/presenceservice"
 	"github.com/aghaghiamh/gocast/QAGame/service/userservice"
 	"github.com/aghaghiamh/gocast/QAGame/validator/matchingvalidator"
 	"github.com/aghaghiamh/gocast/QAGame/validator/uservalidator"
-
-	"github.com/aghaghiamh/gocast/QAGame/service/matchingservice"
 )
 
 func main() {
 	config := config.LoadConfig()
 
 	logger.Logger.Named("main").Info("config info", zap.Any("config", config))
+
+	go func() {
+		// New server set-up with default mux for pprof use only and keep the profiling data in our private zone
+		pprofAddr := fmt.Sprintf("%s:%d", config.AppConfig.PprofHostAddr, config.AppConfig.PprofPort)
+		logger.Logger.Info("Profiling listening on " + pprofAddr)
+		if err := http.ListenAndServe(pprofAddr, nil); err != nil {
+			logger.Logger.Fatal("Couldn't Listen on " + pprofAddr)
+		}
+	}()
 
 	// General DB Connector
 	generalMysqlDB, _ := mysql.New(config.DB)

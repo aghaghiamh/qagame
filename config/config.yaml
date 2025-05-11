@@ -1,7 +1,11 @@
 type: yml
 
+app_params:
+  pprof_host: "localhost"
+  pprof_port: 8090
+
 db_params:
-# better to not include here
+# TODO: better to not include here
   host: "127.0.0.1"
   port: 3308
   db_name: "users"

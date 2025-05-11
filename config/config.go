@@ -18,7 +18,13 @@ import (
 	"github.com/aghaghiamh/gocast/QAGame/service/presenceservice"
 )
 
+type AppConfig struct {
+	PprofHostAddr string `mapstructure:"pprof_host"`
+	PprofPort     int    `mapstructure:"pprof_port"`
+}
+
 type Config struct {
+	AppConfig   AppConfig              `mapstructure:"app_params"`
 	DB          mysql.Config           `mapstructure:"db_params"`
 	Redis       redisAdapter.Config    `mapstructure:"redis_params"`
 	Scheduler   scheduler.Config       `mapstructure:"scheduler"`
