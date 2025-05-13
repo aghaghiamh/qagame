@@ -1,5 +1,7 @@
 module github.com/aghaghiamh/gocast/QAGame
 
+replace github.com/aghaghiamh/gocast/QAGame => github.com/aghaghiamh/qagame v0.0.0
+
 go 1.23.0
 
 toolchain go1.23.7

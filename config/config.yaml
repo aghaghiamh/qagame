@@ -6,8 +6,8 @@ app_params:
 
 db_params:
 # TODO: better to not include here
-  host: "127.0.0.1"
-  port: 3308
+  host: "db"
+  port: 3306
   db_name: "users"
 
   max_life_time: "3m"
@@ -15,7 +15,7 @@ db_params:
   max_idle_conn: 10
 
 redis_params:
-  host: "localhost"
+  host: "redis"
   port: 6379
   password: "" # TODO: implement later using env variables
   db: 0
@@ -28,7 +28,7 @@ auth_params:
   refresh_token_duration: "7d"
 
 server_params:
-  host: "localhost"
+  host: "0.0.0.0"
   port: 8080
 
 matching_service_params:
